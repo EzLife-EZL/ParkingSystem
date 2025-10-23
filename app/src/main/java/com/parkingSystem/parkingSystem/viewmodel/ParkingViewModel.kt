@@ -3,7 +3,6 @@ package com.parkingSystem.parkingSystem.viewmodel
 import android.content.Context
 import android.content.SharedPreferences
 import android.util.Log
-import android.util.Log.e
 import android.widget.Toast
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -83,8 +82,8 @@ class ParkingViewModel(private val sharedPreferences: SharedPreferences) : ViewM
                 val response = RetrofitInstance.parking.getParkById(parkId)
 
                 if (response.isSuccessful && response.body() != null) {
-                    _currentPark.value = response.body()
                     println("fetchParkById: " + response.body().toString())
+                    _currentPark.value = response.body()
                     _slots.value = response.body()!!.slots
                 } else {
                     println("fetchParkById: " + response.body().toString())
@@ -127,7 +126,7 @@ class ParkingViewModel(private val sharedPreferences: SharedPreferences) : ViewM
     /**
      * Đặt chỗ đậu xe
      */
-    fun bookSlot(parkId: String, slotId: String) {
+    fun bookSlot(parkId: String, slot_name: String) {
         viewModelScope.launch {
             _isLoading.value = true
             _error.value = null
@@ -210,15 +209,15 @@ class ParkingViewModel(private val sharedPreferences: SharedPreferences) : ViewM
         viewModelScope.launch {
             try {
                 val req = CreateParkingRequest(
-                    parkName = data.parkName,
+                    park_name = data.park_name,
                     address = data.address,
-                    typeVehicle = data.typeVehicle,
+                    type_vehicle = data.type_vehicle,
                     price = data.price ?: 0.0,
                     slots = data.slots
                 )
                 val address = MultipartBody.Part.createFormData("address", data.address)
                 val typeVehicle =
-                    MultipartBody.Part.createFormData("type_vehicle", data.typeVehicle)
+                    MultipartBody.Part.createFormData("type_vehicle", data.type_vehicle)
                 val price =
                     MultipartBody.Part.createFormData("price", (data.price ?: 0.0).toString())
 
