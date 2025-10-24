@@ -172,9 +172,9 @@ fun CreateSpecialtyScreen(sharedPreferences: SharedPreferences) {
                         for (y in 1..r) {
                             for (x in 1..c) {
                                 list += Slot(
-                                    pos_x = x,
-                                    pos_y = y,
-                                    slotId = (n-1).toString(),
+                                    pos_X = x,
+                                    pos_Y = y,
+                                    slot_id = (n-1).toString(),
                                     slotName = n.toString(),
                                     isBooked = false
                                 )
@@ -210,7 +210,7 @@ fun CreateSpecialtyScreen(sharedPreferences: SharedPreferences) {
                         ),
                         onClick = {
                             if (selectedKeys.isEmpty()) return@Button
-                            slots = slots.filter { slotKey(it.pos_x, it.pos_y) !in selectedKeys }
+                            slots = slots.filter { slotKey(it.pos_X, it.pos_Y) !in selectedKeys }
                             selectedKeys = emptySet()
                         },
                         enabled = selectedKeys.isNotEmpty()
@@ -247,8 +247,8 @@ fun CreateSpecialtyScreen(sharedPreferences: SharedPreferences) {
                                 horizontalArrangement = Arrangement.SpaceBetween
                             ) {
                                 Text(s.slotName)
-                                Text(s.pos_x.toString())
-                                Text(s.pos_y.toString())
+                                Text(s.pos_X.toString())
+                                Text(s.pos_Y.toString())
                                 Text(if (s.isBooked) "Yes" else "No")
                             }
                         }
@@ -266,8 +266,8 @@ fun CreateSpecialtyScreen(sharedPreferences: SharedPreferences) {
                         Toast.makeText(context, "Please enter complete information", Toast.LENGTH_SHORT).show()
                     } else {
                         val request = Park(
-                            parkName = parkName,
-                            typeVehicle = typeVehicle,
+                            park_name = parkName,
+                            type_vehicle = typeVehicle,
                             price = price!!,
                             address = address
                         )
@@ -304,7 +304,7 @@ fun CreateSpecialtyScreen(sharedPreferences: SharedPreferences) {
         ) {
             items(parks) { park ->
                 Text(
-                    "- ${park.parkName}",
+                    "- ${park.park_name}",
                     style = MaterialTheme.typography.bodyLarge,
                     modifier = Modifier.padding(vertical = 4.dp)
                 )
@@ -321,9 +321,9 @@ private fun MinimalParkingGridLazy(
 ) {
     if (slots.isEmpty()) return
 
-    val maxX = slots.maxOf { it.pos_x }
-    val maxY = slots.maxOf { it.pos_y }
-    val byPos = remember(slots) { slots.associateBy { it.pos_x to it.pos_y } }
+    val maxX = slots.maxOf { it.pos_X }
+    val maxY = slots.maxOf { it.pos_Y }
+    val byPos = remember(slots) { slots.associateBy { it.pos_X to it.pos_Y } }
 
     Text("Parking lot map", style = MaterialTheme.typography.titleSmall)
     Spacer(Modifier.height(8.dp))
