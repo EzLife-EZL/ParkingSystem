@@ -18,7 +18,9 @@ data class Slot(
     val slotName: String = "",
     val slot_id: String = "",
     val isBooked: Boolean = false,
+    @SerializedName("pos_X")
     val pos_X: Int = 0,  // Đổi từ String sang Int
+    @SerializedName("pos_Y")
     val pos_Y: Int = 0   // Đổi từ String sang Int
 )
 
@@ -116,4 +118,24 @@ data class CreateParkingRequest(
     val type_vehicle: String,
     val price: Double,
     val slots: List<Slot>
+)
+
+data class CreateSlotEnvelope(
+    val path: String,          // ví dụ: "park"
+    val data: SlotData
+)
+
+data class SlotData(
+    @SerializedName("park_name") val park_name: String,
+    val address: String,
+    @SerializedName("type_vehicle") val type_vehicle: String,
+    val price: Double,
+    val slots: List<SlotDto>
+)
+
+data class SlotDto(
+    val slotName: String,
+    @SerializedName("pos_X") val pos_X: String,
+    @SerializedName("pos_Y") val pos_Y: String,
+    val isBooked: Boolean
 )

@@ -3,11 +3,14 @@ package com.parkingSystem.parkingSystem.viewmodel
 import android.content.Context
 import android.content.SharedPreferences
 import android.util.Log
+import android.util.Log.e
 import android.widget.Toast
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.gson.Gson
-import com.parkingSystem.parkingSystem.responsemodel.CreateParkingRequest
+import com.parkingSystem.parkingSystem.responsemodel.CreateSlotEnvelope
+import com.parkingSystem.parkingSystem.responsemodel.SlotData
+import com.parkingSystem.parkingSystem.responsemodel.SlotDto
 import com.parkingSystem.parkingSystem.responsemodel.Park
 import com.parkingSystem.parkingSystem.responsemodel.Slot
 import com.parkingSystem.parkingSystem.retrofit.RetrofitInstance
@@ -44,6 +47,12 @@ class ParkingViewModel(private val sharedPreferences: SharedPreferences) : ViewM
     // State success message
     private val _successMessage = MutableStateFlow<String?>(null)
     val successMessage: StateFlow<String?> = _successMessage.asStateFlow()
+
+    // Kết quả tạo/ghi park (message từ server)
+    private val _createParkingLotMessage = MutableStateFlow<String?>(null)
+    val createParkingLotMessage: StateFlow<String?> = _createParkingLotMessage.asStateFlow()
+
+    // ===== API calls =====
 
     fun fetchAllParksAvailable() {
         viewModelScope.launch {
@@ -82,8 +91,8 @@ class ParkingViewModel(private val sharedPreferences: SharedPreferences) : ViewM
                 val response = RetrofitInstance.parking.getParkById(parkId)
 
                 if (response.isSuccessful && response.body() != null) {
-                    println("fetchParkById: " + response.body().toString())
                     _currentPark.value = response.body()
+                    println("fetchParkById: " + response.body().toString())
                     _slots.value = response.body()!!.slots
                 } else {
                     println("fetchParkById: " + response.body().toString())
@@ -202,47 +211,73 @@ class ParkingViewModel(private val sharedPreferences: SharedPreferences) : ViewM
         _successMessage.value = null
     }
 
-    private val _createParkingLotMessage  = MutableStateFlow<Park?>(null)
-    val createParkingLotMessage : StateFlow<Park?> = _createParkingLotMessage
+    private fun normalizeVehicle(input: String): String = when (input.trim().lowercase()) {
+        "car", "oto", "ô tô", "ôto" -> "Car"
+        "bike", "xe máy", "xemay", "motor" -> "Bike"
+        else -> "Car"
+    }
 
-    fun createParkingLot(data: Park, context: Context) {
+    // Map model hiển thị -> DTO request (pos_X/pos_Y là String theo BE)
+    private fun mapSlotsToDto(source: List<Slot>): List<SlotDto> =
+        source.map { s ->
+            SlotDto(
+                slotName = s.slotName.trim(),
+                pos_X = s.pos_X.toString(),   // STRING theo DTO BE
+                pos_Y = s.pos_Y.toString(),   // STRING theo DTO BE
+                isBooked = s.isBooked
+            )
+        }.filter { it.slotName.isNotBlank() && it.pos_X.isNotBlank() && it.pos_Y.isNotBlank() }
+
+    // ===== Create / Update Park (POST /document với { path, data{...} }) =====
+
+    fun createParkingLot(
+        context: Context,
+        parkName: String,
+        address: String,
+        typeVehicleInput: String,
+        priceNumber: Double,
+        slotsInternal: List<Slot>             // ← nhận từ UI
+    ) {
         viewModelScope.launch {
+            _isLoading.value = true
+            _error.value = null
             try {
-                val req = CreateParkingRequest(
-                    park_name = data.park_name,
-                    address = data.address,
-                    type_vehicle = data.type_vehicle,
-                    price = data.price ?: 0.0,
-                    slots = data.slots
+                val payload = SlotData(
+                    park_name = parkName,
+                    address = address,
+                    type_vehicle = normalizeVehicle(typeVehicleInput), // "Car" | "Bike"
+                    price = priceNumber,
+                    slots = mapSlotsToDto(slotsInternal)              // map sang DTO
                 )
-                val address = MultipartBody.Part.createFormData("address", data.address)
-                val typeVehicle =
-                    MultipartBody.Part.createFormData("type_vehicle", data.type_vehicle)
-                val price =
-                    MultipartBody.Part.createFormData("price", (data.price ?: 0.0).toString())
 
-                // slotsJson (List<Slot> -> String)
-                val slotsJsonStr = Gson().toJson(data.slots)
-                val slotsBody = slotsJsonStr.toRequestBody("application/json; charset=utf-8".toMediaType())
+                val req = CreateSlotEnvelope(
+                    path = "park",   // đồng bộ với getAllPark("park")
+                    data = payload
+                )
 
-                val response = RetrofitInstance.parking.createParkingSlot(req)
+                // Log JSON để debug nhanh khi 400
+                val json = Gson().toJson(req)
+                Log.d("ParkingVM", "createParkingLot REQUEST = $json")
 
-
-
-                if (response.isSuccessful) {
-                    val body = response.body()
-                    _createParkingLotMessage.value = body
-
+                val resp = RetrofitInstance.parking.createParkingSlot(req)
+                if (resp.isSuccessful) {
+                    val bodyStr = resp.body()?.toString() ?: "Tạo thành công."
+                    _createParkingLotMessage.value = bodyStr
+                    _successMessage.value = "Tạo/ cập nhật bãi đỗ thành công."
                     Toast.makeText(context, "Create success.", Toast.LENGTH_LONG).show()
-                    Log.d("CreateParkingLot", "success: $body")
+                    Log.d("ParkingVM", "createParkingLot success: $bodyStr")
                 } else {
-                    val err = response.errorBody()?.string()
+                    val err = resp.errorBody()?.string()
+                    _error.value = "Tạo thất bại"
+                    Log.e("ParkingVM", "createParkingLot API error: $err")
                     Toast.makeText(context, "Create failed.", Toast.LENGTH_LONG).show()
-                    Log.e("CreateParkingLot", "API error: $err")
                 }
             } catch (e: Exception) {
+                _error.value = "Lỗi: ${e.message}"
+                Log.e("ParkingVM", "createParkingLot exception", e)
                 Toast.makeText(context, "Error: ${e.message}", Toast.LENGTH_LONG).show()
-                Log.e("CreateParkingLot", "exception", e)
+            } finally {
+                _isLoading.value = false
             }
         }
     }

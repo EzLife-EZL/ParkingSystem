@@ -39,9 +39,9 @@ fun CreateSpecialtyScreen(sharedPreferences: SharedPreferences) {
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
 
-    var parkName by remember { mutableStateOf("") }
+    var park_name by remember { mutableStateOf("") }
     var address by remember { mutableStateOf("") }
-    var typeVehicle by remember { mutableStateOf("") }
+    var type_vehicle by remember { mutableStateOf("") }
     var imageUri by remember { mutableStateOf<Uri?>(null) }
     var price by remember { mutableStateOf<Double?>(null) }
 
@@ -81,8 +81,8 @@ fun CreateSpecialtyScreen(sharedPreferences: SharedPreferences) {
             Text("Create a parking lot", style = MaterialTheme.typography.titleLarge)
 
             OutlinedTextField(
-                value = parkName,
-                onValueChange = { parkName = it },
+                value = park_name,
+                onValueChange = { park_name = it },
                 label = { Text("Parking lot name") },
                 modifier = Modifier.fillMaxWidth()
             )
@@ -95,8 +95,8 @@ fun CreateSpecialtyScreen(sharedPreferences: SharedPreferences) {
             )
 
             OutlinedTextField(
-                value = typeVehicle,
-                onValueChange = { typeVehicle = it },
+                value = type_vehicle,
+                onValueChange = { type_vehicle = it },
                 label = { Text("Type of vehicle") },
                 modifier = Modifier.fillMaxWidth(),
             )
@@ -224,36 +224,6 @@ fun CreateSpecialtyScreen(sharedPreferences: SharedPreferences) {
                         )
                     ) { Text("Uncheck") }
                 }
-
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(16.dp)
-                ) {
-                    Column(Modifier.padding(12.dp)) {
-                        Text("Danh sách slot", style = MaterialTheme.typography.titleSmall)
-                        Spacer(Modifier.height(8.dp))
-                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                            Text("Name", fontWeight = FontWeight.SemiBold)
-                            Text("X", fontWeight = FontWeight.SemiBold)
-                            Text("Y", fontWeight = FontWeight.SemiBold)
-                            Text("Booked?", fontWeight = FontWeight.SemiBold)
-                        }
-                        Spacer(Modifier.height(6.dp))
-                        slots.forEach { s ->
-                            Row(
-                                Modifier
-                                    .fillMaxWidth()
-                                    .padding(vertical = 4.dp),
-                                horizontalArrangement = Arrangement.SpaceBetween
-                            ) {
-                                Text(s.slotName)
-                                Text(s.pos_X.toString())
-                                Text(s.pos_Y.toString())
-                                Text(if (s.isBooked) "Yes" else "No")
-                            }
-                        }
-                    }
-                }
             }
 
             Button(
@@ -262,21 +232,28 @@ fun CreateSpecialtyScreen(sharedPreferences: SharedPreferences) {
                     contentColor = Color.White
                 ),
                 onClick = {
-                    if (parkName.isBlank() || typeVehicle.isBlank() || price == null || address.isBlank()) {
+                    if (park_name.isBlank() || type_vehicle.isBlank() || price == null || address.isBlank()) {
                         Toast.makeText(context, "Please enter complete information", Toast.LENGTH_SHORT).show()
                     } else {
                         val request = Park(
-                            park_name = parkName,
-                            type_vehicle = typeVehicle,
+                            park_name = park_name,
+                            type_vehicle = type_vehicle,
                             price = price!!,
                             address = address
                         )
-                        parkingViewModel.createParkingLot(request, context)
+                        parkingViewModel.createParkingLot(
+                            context = context,
+                            parkName = park_name,
+                            address = address,
+                            typeVehicleInput = type_vehicle,
+                            priceNumber = price!!,
+                            slotsInternal = slots,
+                        )
 
                         // delete form after create
-                        parkName = ""
-                        typeVehicle = ""
-                        price == null
+                        park_name = ""
+                        type_vehicle = ""
+                        price = null
                         imageUri = null
                         colsInput = ""; rowsInput = ""; slots = emptyList()
                         selectedKeys = emptySet()
@@ -337,7 +314,7 @@ private fun MinimalParkingGridLazy(
         items(maxX+1) { colIndex ->
             val x = colIndex + 1
             Column {
-                for (y in 0..maxY) {
+                for (y in 1..maxY) {
                     val slot = byPos[x to y]
                     val selected = slot != null && ("${x}_${y}" in selectedKeys)
 
