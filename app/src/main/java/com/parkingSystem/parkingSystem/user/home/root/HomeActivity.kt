@@ -7,6 +7,7 @@ import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
+import android.widget.Toast
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.annotation.RequiresApi
@@ -45,6 +46,7 @@ import com.parkingSystem.parkingSystem.user.home.booking.BookingDetailScreen
 import com.parkingSystem.parkingSystem.user.home.booking.BookingHistoryScreen
 import com.parkingSystem.parkingSystem.user.home.booking.BookingQrScreen
 import com.parkingSystem.parkingSystem.user.home.booking.ConfirmBookingScreen
+import com.parkingSystem.parkingSystem.user.home.booking.StaffScanQrScreen
 import com.parkingSystem.parkingSystem.user.home.parking.ParkingBookingDetailScreen
 import com.parkingSystem.parkingSystem.user.home.parking.ParkingSlot
 import com.parkingSystem.parkingSystem.user.notification.NotificationPage
@@ -137,6 +139,7 @@ class HomeActivity : BaseActivity() {
             }
         }
     }
+
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     @Composable
     fun Index(
@@ -283,6 +286,23 @@ class HomeActivity : BaseActivity() {
                     navHostController = navHostController
                 )
             }
+
+            composable("qr-scanner"){
+                StaffScanQrScreen(
+                    onBookingFound = { bookingId ->
+                        userViewModel.checkBookingInFirestore(bookingId) { exists ->
+                            if (exists) {
+                                Toast.makeText(context, "✅ Đặt chỗ hợp lệ!", Toast.LENGTH_SHORT).show()
+                            } else {
+                                Toast.makeText(context, "❌ Không tìm thấy đặt chỗ!", Toast.LENGTH_SHORT).show()
+                            }
+                        }
+                    }
+
+                )
+            }
+
+
 
 
         }

@@ -1,4 +1,4 @@
-package com.parkingSystem.parkingSystem.user.home.root
+package com.parkingSystem.parkingSystem.staff
 
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.LinearEasing
@@ -26,12 +26,9 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Notifications
-import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.QrCodeScanner
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Icon
@@ -57,7 +54,10 @@ import androidx.navigation.NavHostController
 import kotlin.math.roundToInt
 
 @Composable
-fun FootBar(currentRoute: String?,navHostController: NavHostController) {
+fun StaffBottomBar(
+    currentRoute: String?,
+    navHostController: NavHostController
+) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -70,26 +70,48 @@ fun FootBar(currentRoute: String?,navHostController: NavHostController) {
             modifier = Modifier
                 .fillMaxWidth()
                 .height(100.dp)
-
                 .padding(horizontal = 16.dp)
                 .padding(bottom = 15.dp),
             horizontalArrangement = Arrangement.SpaceAround,
             verticalAlignment = Alignment.Top,
-
         ) {
-            BoxItem(nameRoute = "Trang chủ", icon = "trangchu", nameDirection = "home",  navHostController,currentRoute)
-            BoxItem(nameRoute = "Lịch sử", icon = "history","history", navHostController,currentRoute)
+            BoxItem(
+                nameRoute = "Home",
+                icon = "home",
+                nameDirection = "home",
+                navHostController,
+                currentRoute
+            )
+            BoxItem(
+                nameRoute = "History",
+                icon = "history",
+                nameDirection = "history",
+                navHostController,
+                currentRoute
+            )
             Spacer(modifier = Modifier.width(50.dp)) // Space for the floating button
-            BoxItem(nameRoute = "Thông báo", icon = "thongbao","notification", navHostController,currentRoute)
-            BoxItem(nameRoute = "Cài đặt", icon = "setting","setting", navHostController,currentRoute)
+            BoxItem(
+                nameRoute = "Notification",
+                icon = "notification",
+                nameDirection = "notification",
+                navHostController,
+                currentRoute
+            )
+            BoxItem(
+                nameRoute = "Setting",
+                icon = "setting",
+                nameDirection = "setting",
+                navHostController,
+                currentRoute
+            )
         }
 
         // Floating button in the center
         CircleButton(
-            onClick = {navHostController.navigate("qr-scanner")},
+            onClick = { navHostController.navigate("qr_scanner") },
             modifier = Modifier
                 .align(Alignment.TopCenter)
-                .offset(y = -30.dp), // Elevate the button
+                .offset(y = (-30).dp), // Elevate the button
         )
     }
 }
@@ -112,13 +134,13 @@ fun CircleButton(
         ),
         label = "angleAnim"
     )
-    val infiniteTransitionZoomInOut = rememberInfiniteTransition(label = "zoom" )
+    val infiniteTransitionZoomInOut = rememberInfiniteTransition(label = "zoom")
 
     val zoomScale by infiniteTransitionZoomInOut.animateFloat(
         initialValue = 1f,
         targetValue = 1.2f,
         animationSpec = infiniteRepeatable(
-            animation = tween(500, easing = LinearEasing), // 3s xoay 1
+            animation = tween(500, easing = LinearEasing),
             repeatMode = RepeatMode.Reverse,
         ),
         label = "zoomAnim"
@@ -156,19 +178,19 @@ fun CircleButton(
     ) {
         Icon(
             imageVector = Icons.Default.QrCodeScanner,
-            contentDescription = "Add",
+            contentDescription = "Quét QR",
             tint = MaterialTheme.colorScheme.onBackground,
-            modifier = Modifier.size(size * 0.5f)
+            modifier = Modifier
+                .size(size * 0.5f)
                 .graphicsLayer {
-                    scaleX=zoomScale
-                    scaleY=zoomScale
+                    scaleX = zoomScale
+                    scaleY = zoomScale
                 }
         )
     }
 }
 
 @Composable
-
 fun BoxItem(
     nameRoute: String,
     icon: String,
@@ -178,11 +200,11 @@ fun BoxItem(
     modifier: Modifier = Modifier
 ) {
     val iconchange: ImageVector = when (icon) {
-        "trangchu" -> Icons.Default.Home
+        "home" -> Icons.Default.Home
         "history" -> Icons.Default.History
-        "thongbao" -> Icons.Default.Notifications
+        "notification" -> Icons.Default.Notifications
         "setting" -> Icons.Default.Settings
-        else -> Icons.Default.Add
+        else -> Icons.Default.Home
     }
 
     // background animate khi tab được chọn
@@ -191,20 +213,21 @@ fun BoxItem(
             MaterialTheme.colorScheme.background
         else
             Color.Transparent,
-        animationSpec = tween(durationMillis = 500, easing = LinearEasing)
+        animationSpec = tween(durationMillis = 500, easing = LinearEasing),
+        label = "bgAnim"
     )
 
     // animate offset và alpha khi route thay đổi
     val isSelected = currentRoute == nameDirection
 
     val offsetY by animateFloatAsState(
-        targetValue = if (isSelected) 0f else -20f, // tab đang chọn = vị trí chuẩn, tab khác thì trượt lên
+        targetValue = if (isSelected) 0f else -20f,
         animationSpec = tween(500, easing = LinearOutSlowInEasing),
         label = "offsetAnim"
     )
 
     val alpha by animateFloatAsState(
-        targetValue = if (isSelected) 1f else 0.8f, // tab đang chọn thì rõ nét, tab khác mờ đi
+        targetValue = if (isSelected) 1f else 0.8f,
         animationSpec = tween(500, easing = LinearOutSlowInEasing),
         label = "alphaAnim"
     )
@@ -249,8 +272,7 @@ fun BoxItem(
                 MaterialTheme.colorScheme.background
             } else {
                 MaterialTheme.colorScheme.onBackground
-            }        )
+            }
+        )
     }
 }
-
-
