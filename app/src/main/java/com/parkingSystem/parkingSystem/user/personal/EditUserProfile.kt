@@ -124,7 +124,7 @@ fun HeadbarEditUserProfile(navHostController: NavHostController) {
                 .clickable { navHostController.popBackStack() }
         )
         Text(
-            text = "Chỉnh sửa hồ sơ",
+            text = "Edit User Profile",
             color = MaterialTheme.colorScheme.onPrimary,
             style = MaterialTheme.typography.titleMedium,
             textAlign = TextAlign.Center,

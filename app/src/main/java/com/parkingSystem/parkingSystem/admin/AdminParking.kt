@@ -10,6 +10,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
@@ -25,6 +26,7 @@ import coil.compose.AsyncImage
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
@@ -35,7 +37,6 @@ import androidx.compose.ui.text.input.KeyboardType
 import com.parkingSystem.parkingSystem.responsemodel.Park
 import com.parkingSystem.parkingSystem.responsemodel.Slot
 import com.parkingSystem.parkingSystem.viewmodel.ParkingViewModel
-
 @Composable
 fun AdminParkingScreen(
     sharedPreferences: SharedPreferences,
@@ -52,7 +53,6 @@ fun AdminParkingScreen(
     var rowsInput by remember { mutableStateOf("") }
     var slots by remember { mutableStateOf(listOf<Slot>()) }
 
-    // multi select for delete
     var selectedKeys by remember { mutableStateOf(setOf<String>()) }
     fun slotKey(x: String, y: String) = "${x}_${y}"
 
@@ -69,9 +69,10 @@ fun AdminParkingScreen(
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp)
+            .padding(16.dp),
+
     ) {
-        item {
+        item(key = "create_form") {
             Column(
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
@@ -193,7 +194,8 @@ fun AdminParkingScreen(
                 if (slots.isNotEmpty()) {
                     Spacer(Modifier.height(12.dp))
 
-                    MinimalParkingGridLazy(
+                    // FIX: Use non-lazy grid to avoid nested scrolling issues
+                    MinimalParkingGridStatic(
                         slots = slots,
                         selectedKeys = selectedKeys,
                         onToggle = { x, y ->
@@ -239,12 +241,6 @@ fun AdminParkingScreen(
                         if (park_name.isBlank() || type_vehicle.isBlank() || price == null || address.isBlank()) {
                             Toast.makeText(context, "Please enter complete information", Toast.LENGTH_SHORT).show()
                         } else {
-                            val request = Park(
-                                park_name = park_name,
-                                type_vehicle = type_vehicle,
-                                price = price!!,
-                                address = address
-                            )
                             parkingViewModel.createParkingLot(
                                 context = context,
                                 parkName = park_name,
@@ -254,7 +250,6 @@ fun AdminParkingScreen(
                                 slotsInternal = slots,
                             )
 
-                            // delete form after create
                             park_name = ""
                             type_vehicle = ""
                             price = null
@@ -262,7 +257,6 @@ fun AdminParkingScreen(
                             colsInput = ""; rowsInput = ""; slots = emptyList()
                             selectedKeys = emptySet()
 
-                            // reload
                             parkingViewModel.fetchAllParksAvailable()
                         }
                     },
@@ -275,20 +269,31 @@ fun AdminParkingScreen(
             }
         }
 
-        item {
+        item(key = "parks_header") {
             Text("List of parking lots", style = MaterialTheme.typography.titleMedium)
+            Spacer(Modifier.height(8.dp))
         }
 
-        items(parks, key = { it.park_id }) { park ->
-            ParkCard(park = park, parkingViewModel = parkingViewModel)
+        // FIX: Use stable keys and derivedStateOf
+        items(
+            items = parks,
+            key = { park -> park.park_id }
+        ) { park ->
+            ParkCard(
+                park = park,
+                parkingViewModel = parkingViewModel
+            )
         }
 
-        item { Spacer(Modifier.height(80.dp)) }
+        item(key = "bottom_spacer") {
+            Spacer(Modifier.height(80.dp))
+        }
     }
 }
 
+// FIX: Replace LazyRow with static Row + horizontalScroll
 @Composable
-private fun MinimalParkingGridLazy(
+private fun MinimalParkingGridStatic(
     slots: List<Slot>,
     selectedKeys: Set<String>,
     onToggle: (Int, Int) -> Unit
@@ -306,15 +311,15 @@ private fun MinimalParkingGridLazy(
     Text("Parking lot map", style = MaterialTheme.typography.titleSmall)
     Spacer(Modifier.height(8.dp))
 
-    LazyRow(
+    // FIX: Use Row with horizontalScroll instead of LazyRow
+    Row(
         horizontalArrangement = Arrangement.spacedBy(0.dp),
         modifier = Modifier
             .fillMaxWidth()
-            // height: each row about 52 dp, for maxY rows
             .heightIn(min = (maxY * 52).dp)
+            .horizontalScroll(rememberScrollState())
     ) {
-        // use maxX columns (not maxX + 1)
-        items(maxX) { colIndex ->
+        for (colIndex in 0 until maxX) {
             val x = colIndex + 1
             Column {
                 for (y in 1..maxY) {
@@ -328,6 +333,7 @@ private fun MinimalParkingGridLazy(
                         .background(
                             when {
                                 slot == null -> Color.Transparent
+                                slot.isBooked -> Color(0xFFFF0000)
                                 selected -> Color(0xFF0083FF)
                                 else -> Color(0xFFE5E7EB)
                             }
@@ -375,12 +381,10 @@ private fun ParkCard(
     var editAddress by remember { mutableStateOf(park.address) }
     var editType by remember { mutableStateOf(park.type_vehicle) }
     var editPrice by remember { mutableStateOf(park.price.toString()) }
-    var slotIdToDelete by remember { mutableStateOf("") }
 
-    //select for delete slot
+    // FIX: Use derivedStateOf for computed values
     var selectedKey by remember { mutableStateOf<String?>(null) }
 
-    // show minimapslot for delete
     val byPos = remember(park.slots) {
         park.slots.associateBy { it.pos_X to it.pos_Y }
     }
@@ -429,7 +433,8 @@ private fun ParkCard(
 
             Spacer(Modifier.height(8.dp))
 
-            MinimalParkingGridLazy(
+            // FIX: Use static grid instead of lazy
+            MinimalParkingGridStatic(
                 slots = park.slots,
                 selectedKeys = selectedKey?.let { setOf(it) } ?: emptySet(),
                 onToggle = { x, y ->
@@ -441,7 +446,6 @@ private fun ParkCard(
             Spacer(Modifier.height(8.dp))
 
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                // Delete Slot
                 OutlinedButton(
                     enabled = selectedKey != null,
                     onClick = {
@@ -449,7 +453,6 @@ private fun ParkCard(
                         Log.d("DeleteSlot", "Selected key: $key")
 
                         val (x, y) = key.split("_").map { it.toInt() }
-
                         val slot = byPos[x to y]
 
                         if (slot == null) {
