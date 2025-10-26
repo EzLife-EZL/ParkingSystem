@@ -286,24 +286,20 @@ class HomeActivity : BaseActivity() {
                 )
             }
 
-            composable("qr-scanner"){
-                StaffScanQrScreen(
-                    onBookingFound = { bookingId ->
-                        userViewModel.checkBookingInFirestore(bookingId) { exists ->
-                            if (exists) {
-                                Toast.makeText(context, "✅ Đặt chỗ hợp lệ!", Toast.LENGTH_SHORT).show()
-                            } else {
-                                Toast.makeText(context, "❌ Không tìm thấy đặt chỗ!", Toast.LENGTH_SHORT).show()
-                            }
-                        }
-                    }
-
-                )
-            }
-
-
-
-
+//            composable("qr-scanner"){
+//                StaffScanQrScreen(
+//                    onBookingFound = { bookingId ->
+//                        userViewModel.checkBookingInFirestore(bookingId) { exists ->
+//                            if (exists) {
+//                                Toast.makeText(context, "✅ Đặt chỗ hợp lệ!", Toast.LENGTH_SHORT).show()
+//                            } else {
+//                                Toast.makeText(context, "❌ Không tìm thấy đặt chỗ!", Toast.LENGTH_SHORT).show()
+//                            }
+//                        }
+//                    }
+//
+//                )
+//            }
         }
 
     }

@@ -15,6 +15,7 @@ import com.auth0.android.jwt.JWT
 import com.parkingSystem.parkingSystem.requestmodel.EmailRequest
 import com.parkingSystem.parkingSystem.requestmodel.TokenRequest
 import com.parkingSystem.parkingSystem.requestmodel.UpdateUserInput
+import com.parkingSystem.parkingSystem.responsemodel.BookingInfo
 import com.parkingSystem.parkingSystem.user.home.startscreen.SignIn
 import com.parkingSystem.parkingSystem.responsemodel.OtpResponse
 import com.parkingSystem.parkingSystem.responsemodel.User
@@ -294,5 +295,6 @@ class UserViewModel(private val sharedPreferences: SharedPreferences) : ViewMode
             }
         }
     }
+
 }
 
