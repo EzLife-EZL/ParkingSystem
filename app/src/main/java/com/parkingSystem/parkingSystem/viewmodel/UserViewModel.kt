@@ -47,9 +47,10 @@ class UserViewModel(private val sharedPreferences: SharedPreferences) : ViewMode
             try {
                 val response = RetrofitInstance.admin.getAllUser()
                 if (response.isSuccessful) {
-                    response.body()?.let { userResponse ->
-                        _users.value = userResponse.users           // <-- chỉ users
-                        _allUser.value = userResponse
+                    response.body()?.let { userList ->
+                        _users.value = userList  // Gán trực tiếp
+                        // Nếu cần wrap lại:
+                        _allUser.value = UserResponse(users = userList)
                     } ?: run {
                         Log.e("UserViewModel", "Response body is null")
                     }
@@ -69,7 +70,7 @@ class UserViewModel(private val sharedPreferences: SharedPreferences) : ViewMode
         viewModelScope.launch {
             try {
                 _isUserLoading.value = true
-               ///Chưa có logic
+                ///Chưa có logic
             } catch (e: Exception) {
                 Log.e("UserViewModel", "Lỗi khi lấy user: ${e.message}")
             } finally {
@@ -212,7 +213,19 @@ class UserViewModel(private val sharedPreferences: SharedPreferences) : ViewMode
         viewModelScope.launch {
             try {
                 _isUpdating.value = true
+
+                Log.d("UserViewModel", "===== UPDATE USER DEBUG =====")
+                Log.d("UserViewModel", "User ID: $uid")
+                Log.d("UserViewModel", "Update Data: $updateData")
+                Log.d("UserViewModel", "Name: ${updateData.name}")
+                Log.d("UserViewModel", "Email: ${updateData.email}")
+                Log.d("UserViewModel", "Phone: ${updateData.phone}")
+                Log.d("UserViewModel", "Address: ${updateData.address}")
+                Log.d("UserViewModel", "Password: ${if (updateData.password?.isBlank() == true) "empty" else "***"}")
+                Log.d("UserViewModel", "Role: ${updateData.role}")
+
                 val response = RetrofitInstance.admin.updateUserInfo(uid, updateData)
+
                 if (response.isSuccessful) {
                     Log.d("UserViewModel", "Update success User ID: $uid")
                     getAllUsers()
@@ -279,4 +292,3 @@ class UserViewModel(private val sharedPreferences: SharedPreferences) : ViewMode
         }
     }
 }
-
