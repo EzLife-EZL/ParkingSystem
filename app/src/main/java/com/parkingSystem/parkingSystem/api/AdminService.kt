@@ -14,7 +14,7 @@ interface AdminService {
 
     @Headers("Content-Type: application/json")
     @GET("admin/getallusers")
-    suspend fun getAllUser(): Response<UserResponse>
+    suspend fun getAllUser(): Response<List<User>>
 
     @Headers("Content-Type: application/json")
     @GET("admin/userbyid/{id}")

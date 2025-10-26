@@ -192,8 +192,8 @@ fun ParkingGridLayout(
     slots: List<Slot>?,
     onSpotClick: (Slot) -> Unit
 ) {
-    val maxX = slots?.maxOfOrNull { it.pos_X } ?: 0
-    val maxY = slots?.maxOfOrNull { it.pos_Y } ?: 0
+    val maxX = slots?.maxOfOrNull { it.posXInt } ?: 0
+    val maxY = slots?.maxOfOrNull { it.posYInt } ?: 0
 
     Column(
         modifier = Modifier
@@ -207,7 +207,7 @@ fun ParkingGridLayout(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 for (x in 0..maxX) {
-                    val slot = slots?.find { it.pos_X == x && it.pos_Y == y }
+                    val slot = slots?.find { it.posXInt == x && it.posYInt == y }
 
                     if (slot != null) {
                         ParkingSpotCell(

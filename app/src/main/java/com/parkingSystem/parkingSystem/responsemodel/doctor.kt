@@ -19,10 +19,16 @@ data class Slot(
     val slot_id: String = "",
     val isBooked: Boolean = false,
     @SerializedName("pos_X")
-    val pos_X: Int = 0,  // String to Int
+    val pos_X: String = "0",
     @SerializedName("pos_Y")
-    val pos_Y: Int = 0   // String to Int
-)
+    val pos_Y: String = "0"
+) {
+    val posXInt: Int
+        get() = pos_X.toIntOrNull() ?: 0
+
+    val posYInt: Int
+        get() = pos_Y.toIntOrNull() ?: 0
+}
 
 // Enum cho trạng thái hiển thị
 enum class SpotStatus {

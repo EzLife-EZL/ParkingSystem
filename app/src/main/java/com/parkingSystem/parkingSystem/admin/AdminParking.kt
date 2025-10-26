@@ -2,6 +2,7 @@ package com.parkingSystem.parkingSystem.admin
 
 import android.content.SharedPreferences
 import android.net.Uri
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -37,7 +38,6 @@ fun AdminParkingScreen(
     sharedPreferences: SharedPreferences,
 ) {
     val context = LocalContext.current
-    val coroutineScope = rememberCoroutineScope()
 
     var park_name by remember { mutableStateOf("") }
     var address by remember { mutableStateOf("") }
@@ -51,7 +51,7 @@ fun AdminParkingScreen(
 
     // multi select for delete
     var selectedKeys by remember { mutableStateOf(setOf<String>()) }
-    fun slotKey(x: Int, y: Int) = "${x}_${y}"
+    fun slotKey(x: String, y: String) = "${x}_${y}"
 
     val imagePickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
@@ -61,7 +61,7 @@ fun AdminParkingScreen(
         initializer { ParkingViewModel(sharedPreferences) }
     })
 
-    val parks  by parkingViewModel.parks.collectAsState()
+    val parks by parkingViewModel.parks.collectAsState()
     val createParkRespone by parkingViewModel.createParkingLotMessage.collectAsState()
 
     LaunchedEffect(Unit) {
@@ -73,7 +73,7 @@ fun AdminParkingScreen(
             .fillMaxSize()
             .padding(16.dp)
     ) {
-        item{
+        item {
             Column(
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
@@ -171,9 +171,9 @@ fun AdminParkingScreen(
                             for (y in 1..r) {
                                 for (x in 1..c) {
                                     list += Slot(
-                                        pos_X = x,
-                                        pos_Y = y,
-                                        slot_id = (n-1).toString(),
+                                        pos_X = x.toString(),
+                                        pos_Y = y.toString(),
+                                        slot_id = (n - 1).toString(),
                                         slotName = n.toString(),
                                         isBooked = false
                                     )
@@ -194,14 +194,14 @@ fun AdminParkingScreen(
                         slots = slots,
                         selectedKeys = selectedKeys,
                         onToggle = { x, y ->
-                            val k = slotKey(x, y)
+                            val k = slotKey(x.toString(), y.toString())
                             selectedKeys = if (k in selectedKeys) selectedKeys - k else selectedKeys + k
                         }
                     )
 
                     Spacer(Modifier.height(12.dp))
 
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)){
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         Button(
                             colors = ButtonDefaults.buttonColors(
                                 containerColor = Color(0xFF002E5D),
@@ -270,7 +270,7 @@ fun AdminParkingScreen(
             }
         }
 
-        item{
+        item {
             Text("List of parking lots", style = MaterialTheme.typography.titleMedium)
         }
 
@@ -290,9 +290,13 @@ private fun MinimalParkingGridLazy(
 ) {
     if (slots.isEmpty()) return
 
-    val maxX = slots.maxOf { it.pos_X }
-    val maxY = slots.maxOf { it.pos_Y }
-    val byPos = remember(slots) { slots.associateBy { it.pos_X to it.pos_Y } }
+    val maxX = slots.maxOfOrNull { it.pos_X.toIntOrNull() ?: 0 } ?: 0
+    val maxY = slots.maxOfOrNull { it.pos_Y.toIntOrNull() ?: 0 } ?: 0
+    if (maxX <= 0 || maxY <= 0) return
+
+    val byPos = remember(slots) {
+        slots.associateBy { it.pos_X to it.pos_Y }
+    }
 
     Text("Parking lot map", style = MaterialTheme.typography.titleSmall)
     Spacer(Modifier.height(8.dp))
@@ -301,13 +305,17 @@ private fun MinimalParkingGridLazy(
         horizontalArrangement = Arrangement.spacedBy(0.dp),
         modifier = Modifier
             .fillMaxWidth()
-            .heightIn(min = ((maxY+1) * 52).dp)
+            // height: each row about 52 dp, for maxY rows
+            .heightIn(min = (maxY * 52).dp)
     ) {
-        items(maxX+1) { colIndex ->
+        // use maxX columns (not maxX + 1)
+        items(maxX) { colIndex ->
             val x = colIndex + 1
             Column {
                 for (y in 1..maxY) {
-                    val slot = byPos[x to y]
+                    val xStr = x.toString()
+                    val yStr = y.toString()
+                    val slot = byPos[xStr to yStr]
                     val selected = slot != null && ("${x}_${y}" in selectedKeys)
 
                     val baseModifier = Modifier
@@ -370,8 +378,9 @@ private fun ParkCard(
     var selectedKey by remember { mutableStateOf<String?>(null) }
 
     // show minimapslot for delete
-    val byPos = remember(park.slots) { park.slots.associateBy { it.pos_X to it.pos_Y } }
-
+    val byPos = remember(park.slots) {
+        park.slots.associateBy { it.pos_X to it.pos_Y }
+    }
     val context = LocalContext.current
 
     Card(
@@ -434,8 +443,14 @@ private fun ParkCard(
                     enabled = selectedKey != null,
                     onClick = {
                         val key = selectedKey ?: return@OutlinedButton
+                        Log.d("DeleteSlot", "Selected key: $key")
+
                         val (x, y) = key.split("_").map { it.toInt() }
-                        val slot = byPos[x to y]
+                        val xStr = x.toString()
+                        val yStr = y.toString()
+
+                        val slot = byPos[xStr to yStr]
+
                         if (slot == null) {
                             Toast.makeText(context, "Choose slots in map", Toast.LENGTH_SHORT).show()
                             return@OutlinedButton
