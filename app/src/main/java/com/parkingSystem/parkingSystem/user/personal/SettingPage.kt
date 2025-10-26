@@ -76,9 +76,9 @@ fun Setting(
             Image(
                 painter= painterResource(id = R.drawable.fixingjpg),
                 contentDescription = "Person",
-                modifier = Modifier.align(Alignment.CenterEnd).size(30.dp)
+                modifier = Modifier.align(Alignment.Center).size(30.dp)
             )
-            }
+        }
         SectionSetting(
             nameField = "Log out",
             iconVector = Icons.Default.Logout,
