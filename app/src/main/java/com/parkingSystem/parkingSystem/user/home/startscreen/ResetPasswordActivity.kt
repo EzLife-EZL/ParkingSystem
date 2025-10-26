@@ -41,12 +41,12 @@ class ResetPasswordActivity : BaseActivity() {
             val confirmPassword = confirmPasswordInput.text.toString().trim()
 
             if (newPassword.length < 6) {
-                Toast.makeText(this, "Mật khẩu phải có ít nhất 6 ký tự", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "At least 6 character", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
 
             if (newPassword != confirmPassword) {
-                Toast.makeText(this, "Mật khẩu không trùng khớp", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "No fit password", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
 

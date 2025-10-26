@@ -99,7 +99,7 @@ class SecondSignUp : BaseActivity() {
             }
 
             if (password!=repassword) {
-                Toast.makeText(this, "Mật khẩu nhập lại không trùng khớp", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "No fit password", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
 

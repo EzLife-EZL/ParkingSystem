@@ -208,7 +208,7 @@ fun ParkingBookingDetailScreen(
                                 vehicleNumber = newValue
                                 plateError = when {
                                     newValue.isBlank() -> null
-                                    !isValidVietnamPlate(newValue) -> "Biển số không hợp lệ. VD: 30A-123.45 hoặc 30A-12345"
+                                    !isValidVietnamPlate(newValue) -> "No sutable plate number. Example: 30A-123.45"
                                     else -> null
                                 }
                             }
@@ -235,8 +235,8 @@ fun ParkingBookingDetailScreen(
                             onBookClick = {
                                 // Validation
                                 plateError = when {
-                                    vehicleNumber.isBlank() -> "Vui lòng nhập biển số xe"
-                                    !isValidVietnamPlate(vehicleNumber) -> "Biển số không hợp lệ. VD: 30A-123.45"
+                                    vehicleNumber.isBlank() -> "Please fill plate number"
+                                    !isValidVietnamPlate(vehicleNumber) -> "No sutable plate number. Example: 30A-123.45"
                                     else -> null
                                 }
 
@@ -248,7 +248,7 @@ fun ParkingBookingDetailScreen(
                                 }
 
                                 if (slotId.isNullOrBlank()) {
-                                    dialogMessage = "Không tìm thấy thông tin slot"
+                                    dialogMessage = "No slot found"
                                     isSuccess = false
                                     showDialog = true
                                     return@BookParkingButton
@@ -257,7 +257,7 @@ fun ParkingBookingDetailScreen(
                                 isLoading = true
                                 scope.launch {
                                     try {
-                                        Log.d(TAG, "Bắt đầu đặt chỗ...")
+                                        Log.d(TAG, "Start booking...")
                                         Log.d(TAG, "parkId: $park_id")
                                         Log.d(TAG, "slotId: $slotId")
                                         Log.d(TAG, "userId: $userId")
@@ -572,7 +572,7 @@ fun NoteSection(notes: String, onNoteChange: (String) -> Unit) {
             .background(MaterialTheme.colorScheme.surface)
             .padding(16.dp)
     ) {
-        Text("Ghi chú:", fontWeight = FontWeight.Bold)
+        Text("Note:", fontWeight = FontWeight.Bold)
         Spacer(modifier = Modifier.height(8.dp))
 
         OutlinedTextField(

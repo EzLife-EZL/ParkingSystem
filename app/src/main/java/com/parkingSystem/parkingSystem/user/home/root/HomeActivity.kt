@@ -300,6 +300,12 @@ class HomeActivity : BaseActivity() {
 
                 )
             }
+            composable ("edit-user") {
+                EditUserProfile(
+                    sharedPreferences,
+                    navHostController
+                )
+            }
 
 
 

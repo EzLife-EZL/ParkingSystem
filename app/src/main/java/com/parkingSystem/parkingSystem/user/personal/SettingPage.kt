@@ -67,7 +67,7 @@ fun Setting(
             "Modify personal information",
             iconVector = Icons.Default.ModeEdit,
             onPress = {
-                navHostController.navigate("editProfile")
+                navHostController.navigate("edit-user")
             })
         SectionSetting(
             nameField = "Log out",
@@ -105,10 +105,10 @@ private fun logoutWithGoogle(context: Context, sharedPreferences: SharedPreferen
             context.startActivity(intent)
 
             // Show success message
-            Toast.makeText(context, "Đăng xuất thành công!", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, "Sign out successfully", Toast.LENGTH_SHORT).show()
         } else {
             // Handle error
-            Toast.makeText(context, "Lỗi khi đăng xuất khỏi Google", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, "Error when sign out", Toast.LENGTH_SHORT).show()
         }
     }
 }

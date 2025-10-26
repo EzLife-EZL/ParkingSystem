@@ -204,8 +204,8 @@ fun ChangeAvatar(
     if (showPermissionDialog) {
         AlertDialog(
             onDismissRequest = { showPermissionDialog = false },
-            title = { Text("Cần quyền truy cập") },
-            text = { Text("Ứng dụng cần quyền truy cập ảnh để thay đổi avatar. Vui lòng cấp quyền trong Cài đặt.") },
+            title = { Text("Need permission") },
+            text = { Text("Need permission to access applicaon") },
             confirmButton = {
                 TextButton(
                     onClick = {
@@ -213,12 +213,12 @@ fun ChangeAvatar(
                         openAppSettings(context)
                     }
                 ) {
-                    Text("Đồng ý")
+                    Text("Agree")
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showPermissionDialog = false }) {
-                    Text("Hủy")
+                    Text("Cancel")
                 }
             }
         )
