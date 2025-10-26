@@ -1,7 +1,6 @@
 package com.parkingSystem.parkingSystem.api
 
 import com.google.gson.*
-import com.parkingSystem.parkingSystem.api.FirebaseTimestamp
 import java.lang.reflect.Type
 import java.text.SimpleDateFormat
 import java.util.*

@@ -7,9 +7,9 @@ import android.widget.Toast
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.gson.Gson
-import com.parkingSystem.parkingSystem.api.MakeReservationBody
-import com.parkingSystem.parkingSystem.api.ReservationResponse
 import com.parkingSystem.parkingSystem.api.UserApi
+import com.parkingSystem.parkingSystem.requestmodel.MakeReservationBody
+import com.parkingSystem.parkingSystem.requestmodel.ReservationResponse
 import com.parkingSystem.parkingSystem.responsemodel.CreateSlotEnvelope
 import com.parkingSystem.parkingSystem.responsemodel.SlotData
 import com.parkingSystem.parkingSystem.responsemodel.SlotDto

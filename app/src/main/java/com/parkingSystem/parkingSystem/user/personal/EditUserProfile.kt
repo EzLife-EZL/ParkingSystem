@@ -1,6 +1,5 @@
 package com.parkingSystem.parkingSystem.user.personal
 
-import android.Manifest
 import android.content.Intent
 import android.content.SharedPreferences
 import android.content.pm.PackageManager
@@ -8,18 +7,14 @@ import android.net.Uri
 import android.os.Build
 import android.provider.Settings
 import android.widget.Toast
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.*
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -40,10 +35,8 @@ import com.parkingSystem.parkingSystem.requestmodel.UpdateUserInput
 import com.parkingSystem.parkingSystem.responsemodel.User
 import com.parkingSystem.parkingSystem.viewmodel.UserViewModel
 import com.parkingSystem.parkingSystem.R
-
 @Composable
-fun EditUserProfile(sharedPreferences: SharedPreferences ,navHostController: NavHostController) {
-// Khởi tạo ViewModel bằng custom factory để truyền SharedPreferences
+fun EditUserProfile(sharedPreferences: SharedPreferences, navHostController: NavHostController) {
     val userViewModel: UserViewModel = viewModel(factory = viewModelFactory {
         initializer { UserViewModel(sharedPreferences) }
     })
@@ -59,25 +52,16 @@ fun EditUserProfile(sharedPreferences: SharedPreferences ,navHostController: Nav
         }
     }
 
-    val userId = jwt?.getClaim("userId")?.asString()
+    val user = userViewModel.user.collectAsState()
 
-    // Gọi API để fetch user từ server
-    LaunchedEffect(userId) {
-        userId?.let {
-            userViewModel.getUser(it)
-        }
-
-    }
-    // Lấy dữ liệu user từ StateFlow
-    val user by userViewModel.user.collectAsState()
     if (user == null) return
 
-    // 🔁 State lưu thông tin chỉnh sửa
+    // Sử dụng ?: để cung cấp giá trị mặc định khi null
     var avatarURL by remember { mutableStateOf<Uri?>(null) }
-    var nameText by remember { mutableStateOf(user!!.name) }
-    var emailText by remember { mutableStateOf(user!!.email) }
-    var phoneText by remember { mutableStateOf(user!!.phone) }
-    var addressText by remember { mutableStateOf(user!!.address) }
+    var nameText by remember { mutableStateOf(user.value?.name ?: "") }
+    var emailText by remember { mutableStateOf(user.value?.email ?: "") }
+    var phoneText by remember { mutableStateOf(user.value?.phone ?: "") }
+    var addressText by remember { mutableStateOf(user.value?.address ?: "") }
     var passwordText by remember { mutableStateOf("") }
     var repasswordText by remember { mutableStateOf("") }
 
@@ -87,37 +71,36 @@ fun EditUserProfile(sharedPreferences: SharedPreferences ,navHostController: Nav
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues).padding(horizontal = 10.dp)
+                .padding(paddingValues)
+                .padding(horizontal = 10.dp)
         ) {
             item { Spacer(modifier = Modifier.height(20.dp)) }
-            item { ChangeAvatar(
-                user = user!!,
-                imageUri = avatarURL,
-                onImageSelected = { avatarURL = it }) }
             item {
                 ContentEditUser(
-                    nameText!!, { nameText = it },
-                    emailText!!, { emailText = it },
-                    phoneText!!, { phoneText = it },
-                    addressText!!, { addressText = it },
+                    nameText, { nameText = it },
+                    emailText, { emailText = it },
+                    phoneText, { phoneText = it },
+                    addressText, { addressText = it },
                     passwordText, { passwordText = it },
                     repasswordText, { repasswordText = it },
                 )
             }
             item {
-                AcceptEditButton(
-                    userId = user!!.uid,
-                    nameText!!,
-                    emailText!!,
-                    phoneText!!,
-                    addressText!!,
-                    passwordText,
-                    repasswordText,
-                    avatarURL = avatarURL,
-                    role = user!!.role.toString(),
-                    viewModel = userViewModel,
-                    navHostController
-                )
+                user?.let {
+                    AcceptEditButton(
+                        userId = it.value?.uid.toString(),
+                        nameText = nameText,
+                        emailText = emailText,
+                        phoneText = phoneText,
+                        addressText = addressText,
+                        passwordText = passwordText,
+                        repasswordText = repasswordText,
+                        avatarURL = avatarURL,
+                        role = it.value?.role ?: "User",
+                        viewModel = userViewModel,
+                        navHostController = navHostController
+                    )
+                }
             }
         }
     }
@@ -129,7 +112,7 @@ fun HeadbarEditUserProfile(navHostController: NavHostController) {
         contentAlignment = Alignment.Center,
         modifier = Modifier
             .fillMaxWidth()
-            .background(MaterialTheme.colorScheme.primaryContainer) // A pleasant cyan
+            .background(MaterialTheme.colorScheme.primaryContainer)
             .padding(16.dp)
     ) {
         Icon(
@@ -142,7 +125,7 @@ fun HeadbarEditUserProfile(navHostController: NavHostController) {
         )
         Text(
             text = "Chỉnh sửa hồ sơ",
-            color = MaterialTheme.colorScheme.onBackground,
+            color = MaterialTheme.colorScheme.onPrimary,
             style = MaterialTheme.typography.titleMedium,
             textAlign = TextAlign.Center,
             modifier = Modifier.fillMaxWidth()
@@ -150,87 +133,102 @@ fun HeadbarEditUserProfile(navHostController: NavHostController) {
     }
 }
 
-@Composable
-fun ChangeAvatar(
-    user: User,
-    imageUri: Uri?,
-    onImageSelected: (Uri) -> Unit
-) {
-    val context = LocalContext.current
-    var showPermissionDialog by remember { mutableStateOf(false) }
-    var showRationaleDialog by remember { mutableStateOf(false) }
+//@Composable
+//fun ChangeAvatar(
+//    user: User,
+//    imageUri: Uri?,
+//    onImageSelected: (Uri) -> Unit
+//) {
+//    val context = LocalContext.current
+//    var showPermissionDialog by remember { mutableStateOf(false) }
+//
+//    val imagePickerLauncher = rememberLauncherForActivityResult(
+//        contract = ActivityResultContracts.GetContent()
+//    ) { uri: Uri? ->
+//        uri?.let { onImageSelected(it) }
+//    }
+//
+//    val permissionLauncher = rememberLauncherForActivityResult(
+//        contract = ActivityResultContracts.RequestPermission()
+//    ) { isGranted ->
+//        if (isGranted) {
+//            imagePickerLauncher.launch("image/*")
+//        } else {
+//            showPermissionDialog = true
+//        }
+//    }
+//
+//    fun checkAndRequestPermission() {
+//        val permission = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+//            Manifest.permission.READ_MEDIA_IMAGES
+//        } else {
+//            Manifest.permission.READ_EXTERNAL_STORAGE
+//        }
+//
+//        when {
+//            ContextCompat.checkSelfPermission(context, permission) == PackageManager.PERMISSION_GRANTED -> {
+//                imagePickerLauncher.launch("image/*")
+//            }
+//            else -> {
+//                permissionLauncher.launch(permission)
+//            }
+//        }
+//    }
+//
+//    // UI cho avatar (bạn cần thêm phần hiển thị avatar và button để chọn ảnh)
+//    Column(
+//        modifier = Modifier.fillMaxWidth(),
+//        horizontalAlignment = Alignment.CenterHorizontally
+//    ) {
+//        // Hiển thị avatar hiện tại hoặc ảnh đã chọn
+//        Box(
+//            modifier = Modifier
+//                .size(120.dp)
+//                .clip(CircleShape)
+//                .background(MaterialTheme.colorScheme.surfaceVariant)
+//                .clickable { checkAndRequestPermission() }
+//        ) {
+//            // Load avatar từ URL hoặc URI
+//            // Sử dụng Coil hoặc Glide để load image
+//        }
+//
+//        Spacer(modifier = Modifier.height(8.dp))
+//
+//        TextButton(onClick = { checkAndRequestPermission() }) {
+//            Text("Thay đổi ảnh đại diện")
+//        }
+//    }
+//
+//    if (showPermissionDialog) {
+//        AlertDialog(
+//            onDismissRequest = { showPermissionDialog = false },
+//            title = { Text("Cần quyền truy cập") },
+//            text = { Text("Ứng dụng cần quyền truy cập thư viện ảnh để thay đổi ảnh đại diện") },
+//            confirmButton = {
+//                TextButton(
+//                    onClick = {
+//                        showPermissionDialog = false
+//                        openAppSettings(context)
+//                    }
+//                ) {
+//                    Text("Đồng ý")
+//                }
+//            },
+//            dismissButton = {
+//                TextButton(onClick = { showPermissionDialog = false }) {
+//                    Text("Hủy")
+//                }
+//            }
+//        )
+//    }
+//}
 
-    // Launcher để chọn ảnh
-    val imagePickerLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.GetContent()
-    ) { uri: Uri? ->
-        uri?.let { onImageSelected(it) }
-    }
-
-    // Launcher để xin quyền
-    val permissionLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.RequestPermission()
-    ) { isGranted ->
-        if (isGranted) {
-            // Quyền được cấp, mở image picker
-            imagePickerLauncher.launch("image/*")
-        } else {
-            // Quyền bị từ chối, hiển thị dialog thông báo
-            showPermissionDialog = true
-        }
-    }
-
-    // Function để kiểm tra và xin quyền
-    fun checkAndRequestPermission() {
-        val permission = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            Manifest.permission.READ_MEDIA_IMAGES
-        } else {
-            Manifest.permission.READ_EXTERNAL_STORAGE
-        }
-
-        when {
-            ContextCompat.checkSelfPermission(context, permission) == PackageManager.PERMISSION_GRANTED -> {
-                // Đã có quyền, mở image picker
-                imagePickerLauncher.launch("image/*")
-            }
-            else -> {
-                // Chưa có quyền, xin quyền
-                permissionLauncher.launch(permission)
-            }
-        }
-    }
-
-    // Dialog thông báo khi quyền bị từ chối
-    if (showPermissionDialog) {
-        AlertDialog(
-            onDismissRequest = { showPermissionDialog = false },
-            title = { Text("Need permission") },
-            text = { Text("Need permission to access applicaon") },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        showPermissionDialog = false
-                        openAppSettings(context)
-                    }
-                ) {
-                    Text("Agree")
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { showPermissionDialog = false }) {
-                    Text("Cancel")
-                }
-            }
-        )
-    }
-}
 private fun openAppSettings(context: android.content.Context) {
     val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
         data = Uri.fromParts("package", context.packageName, null)
     }
     context.startActivity(intent)
 }
-
 
 @Composable
 fun ContentEditUser(
@@ -247,24 +245,24 @@ fun ContentEditUser(
             .padding(horizontal = 20.dp, vertical = 10.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        InputEditField("Full name", nameText, onNameChange, "")
-        InputEditField("Email", emailText, onEmailChange, "")
-        InputEditField("Phone", phoneText, onPhoneChange, "")
-        InputEditField("Address", addressText, onAddressChange, "")
-        InputEditField("Password", passwordText, onPasswordChange, "", isPassword = true)
-        InputEditField("Refill password", repasswordText, onRepasswordChange, "", isPassword = true)
+        InputEditField("Full name", nameText, onNameChange, "Input name")
+        InputEditField("Email", emailText, onEmailChange, "Input email")
+        InputEditField("Phone", phoneText, onPhoneChange, "Input phone")
+        InputEditField("Address", addressText, onAddressChange, "Input address")
+        InputEditField("Password", passwordText, onPasswordChange, "Input password", true)
+        InputEditField("Re-password", repasswordText, onRepasswordChange, "Re-input password", true)
     }
 }
 
 @Composable
 fun AcceptEditButton(
     userId: String,
-    name: String,
-    email: String,
-    phone: String,
-    address: String,
-    password: String,
-    repassword: String,
+    nameText: String,
+    emailText: String,
+    phoneText: String,
+    addressText: String,
+    passwordText: String,
+    repasswordText: String,
     avatarURL: Uri?,
     role: String,
     viewModel: UserViewModel,
@@ -274,7 +272,6 @@ fun AcceptEditButton(
     val updateSuccess by viewModel.updateSuccess.collectAsState()
     val isUpdating by viewModel.isUpdating.collectAsState()
 
-    // Điều hướng khi update thành công
     LaunchedEffect(updateSuccess) {
         if (updateSuccess == true) {
             navHostController.navigate("personal")
@@ -283,19 +280,26 @@ fun AcceptEditButton(
     }
 
     Button(
-        modifier = Modifier.fillMaxWidth(),
-        enabled = !isUpdating, // khi đang update thì disable nút
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 20.dp, vertical = 10.dp),
+        enabled = !isUpdating,
+        colors = ButtonDefaults.buttonColors(
+            containerColor = MaterialTheme.colorScheme.primary,
+            contentColor = MaterialTheme.colorScheme.onPrimary
+        ),
         onClick = {
-            if (password != repassword) {
-                Toast.makeText(context, "Wrong password", Toast.LENGTH_SHORT).show()
+            // Kiểm tra nếu người dùng muốn đổi mật khẩu
+            if (passwordText.isNotEmpty() && passwordText != repasswordText) {
+                Toast.makeText(context, "Mật khẩu không khớp", Toast.LENGTH_SHORT).show()
             } else {
                 val updateUser = UpdateUserInput(
-                    name = name,
-                    email = email,
-                    phone = phone,
-                    address = address,
+                    name = nameText,
+                    email = emailText,
+                    phone = phoneText,
+                    address = addressText,
                     role = role,
-                    password = password
+                    password = if (passwordText.isNotEmpty()) passwordText else null
                 )
                 viewModel.updateUser(userId, updateUser, context)
             }
@@ -303,19 +307,17 @@ fun AcceptEditButton(
     ) {
         if (isUpdating) {
             CircularProgressIndicator(
-                modifier = Modifier
-                    .size(20.dp),
+                modifier = Modifier.size(20.dp),
                 color = Color.White,
                 strokeWidth = 2.dp
             )
             Spacer(modifier = Modifier.width(15.dp))
-            Text("Saving...")
+            Text("Đang lưu...")
         } else {
-            Text("Save change")
+            Text("Lưu thay đổi")
         }
     }
 }
-
 
 @Composable
 fun InputEditField(
@@ -336,7 +338,7 @@ fun InputEditField(
         TextField(
             value = value,
             onValueChange = onValueChange,
-            placeholder = { Text(placeholder, color = MaterialTheme.colorScheme.onBackground) },
+            placeholder = { Text(placeholder, color = MaterialTheme.colorScheme.onSurfaceVariant) },
             visualTransformation = if (isPassword) PasswordVisualTransformation() else VisualTransformation.None,
             colors = TextFieldDefaults.colors(
                 focusedContainerColor = Color.Transparent,

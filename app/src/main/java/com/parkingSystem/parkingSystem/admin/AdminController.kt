@@ -369,7 +369,7 @@ fun VehicleTypeRevenueCard() {
                     color = Color(0xFF2D3748)
                 )
                 FilterDropdown(
-                    options = listOf("Bike", "Car", "MotorBike"),
+                    options = listOf("Bike", "Car"),
                     selectedOption = selectedFilter,
                     onOptionSelected = { selectedFilter = it }
                 )

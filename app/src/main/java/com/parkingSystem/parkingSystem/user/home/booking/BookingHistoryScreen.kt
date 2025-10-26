@@ -307,7 +307,7 @@ private fun BookingCard(
             Spacer(Modifier.height(6.dp))
 
             Text(
-                b.address ?: "Địa chỉ: --",
+                b.address ?: "Address: --",
                 style = MaterialTheme.typography.bodyMedium.copy(
                     color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.8f)
                 )
@@ -316,14 +316,14 @@ private fun BookingCard(
             Spacer(Modifier.height(10.dp))
 
             Text(
-                "Vị trí: ${b.slotName ?: "--"}",
+                "Position: ${b.slotName ?: "--"}",
                 style = MaterialTheme.typography.bodyMedium.copy(
                     fontWeight = FontWeight.Medium,
                     color = MaterialTheme.colorScheme.onBackground
                 )
             )
             Text(
-                "Biển số: ${b.numberPlate ?: "--"}",
+                "Plate: ${b.numberPlate ?: "--"}",
                 style = MaterialTheme.typography.bodyMedium.copy(
                     color = MaterialTheme.colorScheme.onBackground
                 )
@@ -331,7 +331,7 @@ private fun BookingCard(
 
             Spacer(Modifier.height(10.dp))
             Text(
-                "Tạo lúc: $createdText",
+                "Create at: $createdText",
                 style = MaterialTheme.typography.bodySmall.copy(
                     color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f),
                     fontWeight = FontWeight.Light
