@@ -278,5 +278,21 @@ class UserViewModel(private val sharedPreferences: SharedPreferences) : ViewMode
             }
         }
     }
+
+    fun checkBookingInFirestore(bookingId: String, onResult: (Boolean) -> Unit) {
+        viewModelScope.launch {
+            try {
+                val response = RetrofitInstance.admin.checkBooking(bookingId)
+                if (response.isSuccessful) {
+                    val exists = response.body()?.exists ?: false
+                    onResult(exists)
+                } else {
+                    onResult(false)
+                }
+            } catch (e: Exception) {
+                onResult(false)
+            }
+        }
+    }
 }
 

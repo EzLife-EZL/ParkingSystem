@@ -11,6 +11,7 @@ import com.parkingSystem.parkingSystem.api.NotificationService
 import com.parkingSystem.parkingSystem.api.RemoteMedicalOptionService
 import com.parkingSystem.parkingSystem.api.ReportService
 import com.parkingSystem.parkingSystem.api.ReviewService
+import com.parkingSystem.parkingSystem.api.StaffService
 import com.parkingSystem.parkingSystem.api.UserApi
 import com.parkingSystem.parkingSystem.api.UserService
 import okhttp3.OkHttpClient
@@ -21,7 +22,7 @@ import java.util.concurrent.TimeUnit
 object RetrofitInstance {
 //   private const val BASE_URL = "http://192.168.1.71:4000"
    //private const val BASE_URL = "https://healthcare-backend-yc39.onrender.com"
-    private const val BASE_URL = "http://192.168.0.9:4000"
+    private const val BASE_URL = "http://192.168.1.9:4000"
     private val client = OkHttpClient.Builder()
         .connectTimeout(60, TimeUnit.SECONDS)  // Thời gian timeout kết nối
         .writeTimeout(60, TimeUnit.SECONDS)    // Thời gian timeout ghi dữ liệuz
@@ -51,4 +52,5 @@ object RetrofitInstance {
     val newsService: NewsService by lazy { retrofit.create(NewsService::class.java) }
     val userService: UserService by lazy { retrofit.create(UserService::class.java) }
     val userApi: UserApi by lazy { retrofit.create(UserApi::class.java) }
+    val staffService: StaffService by lazy { retrofit.create(StaffService::class.java) }
 }

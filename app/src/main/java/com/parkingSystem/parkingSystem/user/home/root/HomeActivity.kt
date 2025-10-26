@@ -7,6 +7,7 @@ import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
+import android.widget.Toast
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.annotation.RequiresApi
@@ -39,6 +40,7 @@ import com.google.firebase.analytics.analytics
 import com.google.firebase.messaging.FirebaseMessaging
 import com.parkingSystem.core.common.activity.BaseActivity
 import com.parkingSystem.parkingSystem.roomDb.data.dao.AppointmentDao
+import com.parkingSystem.parkingSystem.staff.StaffScanQrScreen
 import com.parkingSystem.parkingSystem.ui.theme.ParkingSystemTheme
 import com.parkingSystem.parkingSystem.user.home.booking.BookingCalendarScreen
 import com.parkingSystem.parkingSystem.user.home.booking.BookingDetailScreen
@@ -283,6 +285,23 @@ class HomeActivity : BaseActivity() {
                     navHostController = navHostController
                 )
             }
+
+            composable("qr-scanner"){
+                StaffScanQrScreen(
+                    onBookingFound = { bookingId ->
+                        userViewModel.checkBookingInFirestore(bookingId) { exists ->
+                            if (exists) {
+                                Toast.makeText(context, "✅ Đặt chỗ hợp lệ!", Toast.LENGTH_SHORT).show()
+                            } else {
+                                Toast.makeText(context, "❌ Không tìm thấy đặt chỗ!", Toast.LENGTH_SHORT).show()
+                            }
+                        }
+                    }
+
+                )
+            }
+
+
 
 
         }

@@ -2,6 +2,7 @@ package com.parkingSystem.parkingSystem.api
 
 import com.parkingSystem.parkingSystem.requestmodel.TokenRequest
 import com.parkingSystem.parkingSystem.requestmodel.UpdateUserInput
+import com.parkingSystem.parkingSystem.responsemodel.CheckBookingResponse
 import com.parkingSystem.parkingSystem.responsemodel.DeleteUserResponse
 import com.parkingSystem.parkingSystem.responsemodel.User
 import com.parkingSystem.parkingSystem.responsemodel.UserResponse
@@ -36,4 +37,8 @@ interface AdminService {
         @Path("id") userId: String,
         @Body tokenRequest: TokenRequest
     ): Response<Void>
+
+    @GET("admin/check-booking/{id}")
+    suspend fun checkBooking(@Path("id") id: String): Response<CheckBookingResponse>
+
 }
