@@ -7,6 +7,7 @@ import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
+import android.widget.Toast
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.annotation.RequiresApi
@@ -29,12 +30,10 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import androidx.navigation.NavHostController
-import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import androidx.navigation.navArgument
 import com.google.firebase.Firebase
 import com.google.firebase.analytics.FirebaseAnalytics
 import com.google.firebase.analytics.analytics
@@ -42,9 +41,12 @@ import com.google.firebase.messaging.FirebaseMessaging
 import com.parkingSystem.core.common.activity.BaseActivity
 import com.parkingSystem.parkingSystem.roomDb.data.dao.AppointmentDao
 import com.parkingSystem.parkingSystem.ui.theme.ParkingSystemTheme
-import com.parkingSystem.parkingSystem.user.home.booking.AppointmentListScreen
 import com.parkingSystem.parkingSystem.user.home.booking.BookingCalendarScreen
+import com.parkingSystem.parkingSystem.user.home.booking.BookingDetailScreen
+import com.parkingSystem.parkingSystem.user.home.booking.BookingHistoryScreen
+import com.parkingSystem.parkingSystem.user.home.booking.BookingQrScreen
 import com.parkingSystem.parkingSystem.user.home.booking.ConfirmBookingScreen
+import com.parkingSystem.parkingSystem.user.home.booking.StaffScanQrScreen
 import com.parkingSystem.parkingSystem.user.home.parking.ParkingBookingDetailScreen
 import com.parkingSystem.parkingSystem.user.home.parking.ParkingSlot
 import com.parkingSystem.parkingSystem.user.notification.NotificationPage
@@ -52,10 +54,6 @@ import com.parkingSystem.parkingSystem.user.personal.ActivityManagerScreen
 import com.parkingSystem.parkingSystem.user.personal.EditUserProfile
 import com.parkingSystem.parkingSystem.user.personal.Setting
 import com.parkingSystem.parkingSystem.viewmodel.ParkingViewModel
-import com.parkingSystem.parkingSystem.viewmodel.FAQItemViewModel
-import com.parkingSystem.parkingSystem.viewmodel.MedicalOptionViewModel
-import com.parkingSystem.parkingSystem.viewmodel.NewsViewModel
-import com.parkingSystem.parkingSystem.viewmodel.RemoteMedicalOptionViewModel
 import com.parkingSystem.parkingSystem.viewmodel.UserViewModel
 
 
@@ -141,6 +139,7 @@ class HomeActivity : BaseActivity() {
             }
         }
     }
+
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     @Composable
     fun Index(
@@ -215,7 +214,7 @@ class HomeActivity : BaseActivity() {
                 )
             }
             composable("history") {
-                AppointmentListScreen(sharedPreferences, navHostController, dao = dao)
+                BookingHistoryScreen(sharedPreferences, navHostController)
             }
             composable("notification") {
                 NotificationPage(context, navHostController)
@@ -265,6 +264,47 @@ class HomeActivity : BaseActivity() {
                     darkTheme = darkTheme
                 )
             }
+            composable("booking_history") {
+                BookingHistoryScreen(
+                    sharedPreferences = sharedPreferences,
+                    navHostController = navHostController
+                )
+            }
+
+            composable("booking_detail/{bookingId}") { backStackEntry ->
+                val bookingIdArg = backStackEntry.arguments?.getString("bookingId") ?: ""
+                BookingDetailScreen(
+                    sharedPreferences = sharedPreferences,
+                    navHostController = navHostController,
+                    bookingId = bookingIdArg
+                )
+            }
+            composable("booking_qr/{bookingId}") { backStackEntry ->
+                val bookingIdArg = backStackEntry.arguments?.getString("bookingId") ?: ""
+                BookingQrScreen(
+                    bookingId = bookingIdArg,
+                    navHostController = navHostController
+                )
+            }
+
+            composable("qr-scanner"){
+                StaffScanQrScreen(
+                    onBookingFound = { bookingId ->
+                        userViewModel.checkBookingInFirestore(bookingId) { exists ->
+                            if (exists) {
+                                Toast.makeText(context, "✅ Đặt chỗ hợp lệ!", Toast.LENGTH_SHORT).show()
+                            } else {
+                                Toast.makeText(context, "❌ Không tìm thấy đặt chỗ!", Toast.LENGTH_SHORT).show()
+                            }
+                        }
+                    }
+
+                )
+            }
+
+
+
+
         }
 
     }

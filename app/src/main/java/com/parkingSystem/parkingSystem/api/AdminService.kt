@@ -1,6 +1,7 @@
 package com.parkingSystem.parkingSystem.api
 
 import com.parkingSystem.parkingSystem.requestmodel.GetUserID
+import com.parkingSystem.parkingSystem.responsemodel.CheckBookingResponse
 import com.parkingSystem.parkingSystem.responsemodel.DeleteUserResponse
 import com.parkingSystem.parkingSystem.responsemodel.User
 import com.parkingSystem.parkingSystem.responsemodel.UserResponse
@@ -41,4 +42,7 @@ interface AdminService {
 
     @DELETE("admin/delete-user/{id}")
     suspend fun deleteUser(@Path("id") id: String): Response<DeleteUserResponse>
+
+    @GET("admin/check-booking/{id}")
+    suspend fun checkBooking(@Path("id") id: String): Response<CheckBookingResponse>
 }

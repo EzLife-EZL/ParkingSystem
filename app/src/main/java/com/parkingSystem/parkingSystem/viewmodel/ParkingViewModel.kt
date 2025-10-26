@@ -3,26 +3,67 @@ package com.parkingSystem.parkingSystem.viewmodel
 import android.content.Context
 import android.content.SharedPreferences
 import android.util.Log
-import android.util.Log.e
 import android.widget.Toast
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.gson.Gson
+import com.parkingSystem.parkingSystem.api.MakeReservationBody
+import com.parkingSystem.parkingSystem.api.ReservationResponse
+import com.parkingSystem.parkingSystem.api.UserApi
 import com.parkingSystem.parkingSystem.responsemodel.CreateSlotEnvelope
 import com.parkingSystem.parkingSystem.responsemodel.SlotData
 import com.parkingSystem.parkingSystem.responsemodel.SlotDto
 import com.parkingSystem.parkingSystem.responsemodel.Park
 import com.parkingSystem.parkingSystem.responsemodel.Slot
 import com.parkingSystem.parkingSystem.retrofit.RetrofitInstance
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import okhttp3.MediaType.Companion.toMediaType
-import okhttp3.MultipartBody
-import okhttp3.RequestBody.Companion.toRequestBody
+import kotlinx.coroutines.withContext
+
 
 class ParkingViewModel(private val sharedPreferences: SharedPreferences) : ViewModel() {
+
+    lateinit var api: UserApi
+
+    // ParkingViewModel.kt
+    suspend fun bookSlot(
+        parkId: String,
+        slotId: String,
+        userId: String,
+        startTimeIso: String,
+        endTimeIso: String,
+        numberPlate: String?
+    ): ReservationResponse = withContext(Dispatchers.IO) {
+
+        val body = MakeReservationBody(
+            parkId = parkId,
+            slotId = slotId,
+            userId = userId,
+            startTime = startTimeIso,
+            endTime = endTimeIso,
+            numberPlate = numberPlate,
+            paymentMethod = "cash",
+            statusPayment = "unpaid"
+        )
+
+        val res = api.makeReservation(body)
+        println("makeReservation -> code=${res.code()} success=${res.isSuccessful}")
+
+        if (res.isSuccessful) {
+            return@withContext ReservationResponse(
+                message = "Đặt chỗ thành công!",
+                reservation = null
+            )
+        } else {
+            val err = res.errorBody()?.string()
+            throw Exception("HTTP ${res.code()}: ${err ?: "Unknown error"}")
+        }
+    }
+
+
 
     // State cho danh sách bãi đậu xe
     private val _parks = MutableStateFlow<List<Park>>(emptyList())
@@ -228,7 +269,7 @@ class ParkingViewModel(private val sharedPreferences: SharedPreferences) : ViewM
             )
         }.filter { it.slotName.isNotBlank() && it.pos_X.isNotBlank() && it.pos_Y.isNotBlank() }
 
-    // ===== Create / Update Park (POST /document với { path, data{...} }) =====
+    // Create / Update
 
     fun createParkingLot(
         context: Context,
@@ -236,7 +277,7 @@ class ParkingViewModel(private val sharedPreferences: SharedPreferences) : ViewM
         address: String,
         typeVehicleInput: String,
         priceNumber: Double,
-        slotsInternal: List<Slot>             // ← nhận từ UI
+        slotsInternal: List<Slot>             // ← receive from UI
     ) {
         viewModelScope.launch {
             _isLoading.value = true
@@ -251,31 +292,115 @@ class ParkingViewModel(private val sharedPreferences: SharedPreferences) : ViewM
                 )
 
                 val req = CreateSlotEnvelope(
-                    path = "park",   // đồng bộ với getAllPark("park")
+                    path = "park",   // getAllPark("park")
                     data = payload
                 )
 
-                // Log JSON để debug nhanh khi 400
+                // Log JSON for debug during run 400
                 val json = Gson().toJson(req)
                 Log.d("ParkingVM", "createParkingLot REQUEST = $json")
 
                 val resp = RetrofitInstance.parking.createParkingSlot(req)
                 if (resp.isSuccessful) {
-                    val bodyStr = resp.body()?.toString() ?: "Tạo thành công."
+                    val bodyStr = resp.body()?.toString() ?: "Create success."
                     _createParkingLotMessage.value = bodyStr
-                    _successMessage.value = "Tạo/ cập nhật bãi đỗ thành công."
+                    _successMessage.value = "Create/update success."
                     Toast.makeText(context, "Create success.", Toast.LENGTH_LONG).show()
                     Log.d("ParkingVM", "createParkingLot success: $bodyStr")
                 } else {
                     val err = resp.errorBody()?.string()
-                    _error.value = "Tạo thất bại"
+                    _error.value = "Create failed."
                     Log.e("ParkingVM", "createParkingLot API error: $err")
                     Toast.makeText(context, "Create failed.", Toast.LENGTH_LONG).show()
                 }
             } catch (e: Exception) {
-                _error.value = "Lỗi: ${e.message}"
+                _error.value = "Error: ${e.message}"
                 Log.e("ParkingVM", "createParkingLot exception", e)
                 Toast.makeText(context, "Error: ${e.message}", Toast.LENGTH_LONG).show()
+            } finally {
+                _isLoading.value = false
+            }
+        }
+    }
+
+    //update
+    fun updateParkById(parkId: String, park: Park, onDone: (() -> Unit)? = null) {
+        viewModelScope.launch {
+            _isLoading.value = true
+            _error.value = null
+            try {
+                val resp = RetrofitInstance.parking.updateParkById(parkId, park)
+                if (resp.isSuccessful) {
+                    _successMessage.value = "Update parkinglot success."
+                    // update _currentPark
+                    if (_currentPark.value?.park_id == parkId) {
+                        // refetch để đồng bộ slots
+                        fetchParkById(parkId)
+                    } else {
+                        // refresh list chung
+                        fetchAllParksAvailable()
+                    }
+                    onDone?.invoke()
+                } else {
+                    _error.value = "Update failed"
+                }
+            } catch (e: Exception) {
+                _error.value = "Lỗi: ${e.message}"
+                e.printStackTrace()
+            } finally {
+                _isLoading.value = false
+            }
+        }
+    }
+
+    //deletePark
+    fun deleteParkById(parkId: String, onDone: (() -> Unit)? = null) {
+        viewModelScope.launch {
+            _isLoading.value = true
+            _error.value = null
+            try {
+                val resp = RetrofitInstance.parking.deleteParkById(parkId)
+                if (resp.isSuccessful) {
+                    _successMessage.value = "Delete parkinglot success."
+                    // reset local states during view park
+                    if (_currentPark.value?.park_id == parkId) {
+                        resetState()
+                    }
+                    // reload list
+                    fetchAllParksAvailable()
+                    onDone?.invoke()
+                } else {
+                    _error.value = "Delete failed"
+                }
+            } catch (e: Exception) {
+                _error.value = "Lỗi: ${e.message}"
+                e.printStackTrace()
+            } finally {
+                _isLoading.value = false
+            }
+        }
+    }
+
+    //delete slot
+    fun deleteSlotById(parkId: String, slotId: String, onDone: (() -> Unit)? = null) {
+        viewModelScope.launch {
+            _isLoading.value = true
+            _error.value = null
+            try {
+                val resp = RetrofitInstance.parking.deleteSlotById(parkId, slotId)
+                if (resp.isSuccessful) {
+                    _successMessage.value = "Delete slot success."
+                    // refresh slots của park
+                    if (_currentPark.value?.park_id == parkId) {
+                        fetchParkById(parkId) // will update _slots
+                    }
+                    onDone?.invoke()
+                } else {
+                    _error.value = "Delete slots failed"
+                }
+            } catch (e: Exception) {
+                _error.value = "Error: ${e.message}"
+                e.printStackTrace()
             } finally {
                 _isLoading.value = false
             }
