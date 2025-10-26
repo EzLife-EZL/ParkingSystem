@@ -22,6 +22,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -77,11 +78,12 @@ fun Headbar(
                 val shortName = you?.name.toString().let { shortenUserName(it) }
 
                 Text(
-                    text = "Xin chào\n$shortName",
+                    text = "Hello $shortName",
                     fontSize = 15.sp,
                     textAlign = TextAlign.Right,
                     lineHeight = 20.sp,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSecondaryContainer
                 )
 
                 Spacer(modifier = Modifier.width(8.dp))

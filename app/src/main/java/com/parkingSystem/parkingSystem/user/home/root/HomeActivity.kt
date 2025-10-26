@@ -202,7 +202,7 @@ class HomeActivity : BaseActivity() {
             modifier = modifier
         ) {
             composable("home") {
-                HealthMateHomeScreen(
+                MainScreen(
                     modifier = Modifier.fillMaxSize(),
                     sharedPreferences = sharedPreferences,
                     navHostController = navHostController,

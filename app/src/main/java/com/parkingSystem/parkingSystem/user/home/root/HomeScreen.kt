@@ -46,12 +46,14 @@ import androidx.core.os.bundleOf
 import androidx.navigation.NavHostController
 import com.parkingSystem.core.common.skeletonloading.SkeletonBox
 import com.parkingSystem.parkingSystem.responsemodel.*
+import com.parkingSystem.parkingSystem.skeleton.ParkListSkeleton
 import com.parkingSystem.parkingSystem.viewmodel.*
 import kotlinx.coroutines.launch
 
+// Updated HomeScreen with skeleton loading
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun HealthMateHomeScreen(
+fun MainScreen(
     modifier: Modifier = Modifier,
     sharedPreferences: SharedPreferences,
     navHostController: NavHostController,
@@ -68,69 +70,76 @@ fun HealthMateHomeScreen(
 
     val isScrollButtonVisible by remember {
         derivedStateOf {
-            listState.firstVisibleItemIndex > 3 //hien thi khi scroll đến vị trí thứ 3
+            listState.firstVisibleItemIndex > 3
         }
     }
 
-    // Collect states with loading information
     var showReportBox by remember { mutableStateOf(false) }
     var userModel by remember { mutableStateOf("") }
     var username = ""
 
+    // Track loading state
     val parks by parkingViewModel.parks.collectAsState()
+    val isLoading by parkingViewModel.isLoading.collectAsState(initial = true)
+
     LaunchedEffect(Unit) {
         username = userViewModel.getUserAttributeString("name")
         userModel = userViewModel.getUserAttributeString("role")
 
         println("USERNNAME trong HomeScreen: $username")
-
         println("USERID tronng HomeScreen: ${userViewModel.getUserAttributeString("userId")}")
+
         userViewModel.getAllUserAttributeString()
         userViewModel.getUser(userViewModel.getUserAttributeString("id"))
         parkingViewModel.fetchAllParksAvailable()
     }
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .pointerInput(Unit) {
-                detectTapGestures {
-                    showReportBox = false
-                }
-            }
-    ) {
-        LazyColumn(
+    if (isLoading) {
+        ParkListSkeleton()
+    }
+    else{
+        Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(top = 16.dp)
-                .background(MaterialTheme.colorScheme.background),
-            state = listState
+                .pointerInput(Unit) {
+                    detectTapGestures {
+                        showReportBox = false
+                    }
+                }
         ) {
-            item(key = "specialties") {
-                if (parks.isEmpty()) {
-                    SpecialtySkeletonList()
-                } else {
-                    ParkList(
-                        navHostController = navHostController,
-                        context = context,
-                        parks = parks
-                    )
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(top = 16.dp)
+                    .background(MaterialTheme.colorScheme.background),
+                state = listState
+            ) {
+                item(key = "specialties") {
+                    // Hiển thị skeleton khi đang loading
+                    if (parks.isEmpty()) {
+                        SpecialtySkeletonList()
+                    } else {
+                        ParkList(
+                            navHostController = navHostController,
+                            context = context,
+                            parks = parks
+                        )
+                    }
                 }
             }
-        }
 
-        if (isScrollButtonVisible) {
-            BackToTopButton(
-                modifier = Modifier
-                    .align(Alignment.BottomEnd)
-                    .padding(16.dp),
-                onClick = {
-                    coroutineScope.launch {
-                        listState.animateScrollToItem(0)
+            if (isScrollButtonVisible) {
+                BackToTopButton(
+                    modifier = Modifier
+                        .align(Alignment.BottomEnd)
+                        .padding(16.dp),
+                    onClick = {
+                        coroutineScope.launch {
+                            listState.animateScrollToItem(0)
+                        }
                     }
-                },
-
-            )
+                )
+            }
         }
     }
 }
@@ -299,7 +308,7 @@ fun ParkList(
                     ParkItem(
                         navHostController = navHostController,
                         park = park,
-                        onClick = { showToast(context, "Đã chọn: ${park.park_name}") }
+                        onClick = { showToast(context, "Selected: ${park.park_name}") }
                     )
                 }
             }

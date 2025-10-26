@@ -247,12 +247,12 @@ fun ContentEditUser(
             .padding(horizontal = 20.dp, vertical = 10.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        InputEditField("Họ và tên", nameText, onNameChange, "")
+        InputEditField("Full name", nameText, onNameChange, "")
         InputEditField("Email", emailText, onEmailChange, "")
-        InputEditField("Số điện thoại", phoneText, onPhoneChange, "")
-        InputEditField("Địa chỉ", addressText, onAddressChange, "")
-        InputEditField("Mật khẩu", passwordText, onPasswordChange, "", isPassword = true)
-        InputEditField("Nhập lại mật khẩu", repasswordText, onRepasswordChange, "", isPassword = true)
+        InputEditField("Phone", phoneText, onPhoneChange, "")
+        InputEditField("Address", addressText, onAddressChange, "")
+        InputEditField("Password", passwordText, onPasswordChange, "", isPassword = true)
+        InputEditField("Refill password", repasswordText, onRepasswordChange, "", isPassword = true)
     }
 }
 
@@ -287,7 +287,7 @@ fun AcceptEditButton(
         enabled = !isUpdating, // khi đang update thì disable nút
         onClick = {
             if (password != repassword) {
-                Toast.makeText(context, "Mật khẩu không khớp", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, "Wrong password", Toast.LENGTH_SHORT).show()
             } else {
                 val updateUser = UpdateUserInput(
                     name = name,
@@ -309,9 +309,9 @@ fun AcceptEditButton(
                 strokeWidth = 2.dp
             )
             Spacer(modifier = Modifier.width(15.dp))
-            Text("Đang lưu...")
+            Text("Saving...")
         } else {
-            Text("Lưu thay đổi")
+            Text("Save change")
         }
     }
 }

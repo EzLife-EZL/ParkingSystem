@@ -14,9 +14,13 @@ class NotificationViewModel(private val sharedPreferences: SharedPreferences) : 
     private val _notifications = MutableStateFlow<List<NotificationResponse>>(emptyList())
     val notifications: StateFlow<List<NotificationResponse>> get() = _notifications
 
+    private val _isLoading = MutableStateFlow(false)
+    val isLoading: StateFlow<Boolean> get() = _isLoading
+
     fun fetchNotificationByUserId(userId: String) {
         viewModelScope.launch {
             try {
+                _isLoading.value = true
                 val response = RetrofitInstance.notificationService.getNotificationByUserId(userId)
                 if (response.isSuccessful) {
                     _notifications.value = response.body() ?: emptyList()
@@ -24,6 +28,7 @@ class NotificationViewModel(private val sharedPreferences: SharedPreferences) : 
                 } else {
                     println("Lỗi API fetchNotificationByUserId: ${response.errorBody()?.string()}")
                 }
+                _isLoading.value = false
             } catch (e: Exception) {
                 e.printStackTrace()
             }

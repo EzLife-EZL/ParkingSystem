@@ -406,7 +406,7 @@ private fun ParkCard(
                 OutlinedButton(
                     onClick = {
                         parkingViewModel.deleteParkById(park.park_id) {
-                            Toast.makeText(context, "Đã xóa park", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(context, "Park deleted", Toast.LENGTH_SHORT).show()
                         }
                     },
                     colors = ButtonDefaults.outlinedButtonColors(
@@ -468,7 +468,7 @@ private fun ParkCard(
                             onClick = {
                                 val priceVal = editPrice.toDoubleOrNull()
                                 if (editName.isBlank() || editAddress.isBlank() || editType.isBlank() || priceVal == null) {
-                                    Toast.makeText(context, "Điền đủ thông tin hợp lệ", Toast.LENGTH_SHORT).show()
+                                    Toast.makeText(context, "Please fill in all fields", Toast.LENGTH_SHORT).show()
                                     return@Button
                                 }
                                 val updated = park.copy(
@@ -478,23 +478,23 @@ private fun ParkCard(
                                     price = priceVal
                                 )
                                 parkingViewModel.updateParkById(park.park_id, updated) {
-                                    Toast.makeText(context, "Cập nhật thành công", Toast.LENGTH_SHORT).show()
+                                    Toast.makeText(context, "Successfully updated", Toast.LENGTH_SHORT).show()
                                     showEditDialog = false
                                 }
                             }
-                        ) { Text("Lưu") }
+                        ) { Text("Save") }
                     },
-                    dismissButton = { OutlinedButton(onClick = { showEditDialog = false }) { Text("Hủy") } },
-                    title = { Text("Sửa bãi đậu xe") },
+                    dismissButton = { OutlinedButton(onClick = { showEditDialog = false }) { Text("Cancel") } },
+                    title = { Text("Modify park") },
                     text = {
                         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                            OutlinedTextField(editName, { editName = it }, label = { Text("Tên bãi") }, singleLine = true, modifier = Modifier.fillMaxWidth())
-                            OutlinedTextField(editAddress, { editAddress = it }, label = { Text("Địa chỉ") }, singleLine = true, modifier = Modifier.fillMaxWidth())
-                            OutlinedTextField(editType, { editType = it }, label = { Text("Loại xe (Car/Bike)") }, singleLine = true, modifier = Modifier.fillMaxWidth())
+                            OutlinedTextField(editName, { editName = it }, label = { Text("Parking name") }, singleLine = true, modifier = Modifier.fillMaxWidth())
+                            OutlinedTextField(editAddress, { editAddress = it }, label = { Text("Address") }, singleLine = true, modifier = Modifier.fillMaxWidth())
+                            OutlinedTextField(editType, { editType = it }, label = { Text("Type vehicle (Car/Bike)") }, singleLine = true, modifier = Modifier.fillMaxWidth())
                             OutlinedTextField(
                                 value = editPrice,
                                 onValueChange = { s -> editPrice = s.filter { ch -> ch.isDigit() || ch == '.' } },
-                                label = { Text("Giá") },
+                                label = { Text("Price") },
                                 singleLine = true,
                                 keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number),
                                 modifier = Modifier.fillMaxWidth()

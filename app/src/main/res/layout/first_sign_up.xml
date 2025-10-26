@@ -28,7 +28,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
-            android:text="Đăng ký"
+            android:text="Sign up"
             android:textColor="@color/white"
             android:textSize="30sp"
             android:textStyle="bold" />
@@ -99,7 +99,7 @@
                 android:layout_height="wrap_content"
                 android:clickable="true"
                 android:focusable="true"
-                android:text=" Đăng nhập tại đây"
+                android:text=" Sign in here"
                 android:textSize="18sp"
                 android:textStyle="bold"
                 android:textColor="@color/blueblack" />

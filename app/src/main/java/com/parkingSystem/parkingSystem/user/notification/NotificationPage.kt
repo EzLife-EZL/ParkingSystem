@@ -47,6 +47,7 @@ import java.time.ZonedDateTime
 import java.time.Duration
 import java.time.format.DateTimeFormatter
 import com.parkingSystem.parkingSystem.R
+import com.parkingSystem.parkingSystem.skeleton.ListNotificationSkeleton
 
 var userId: String = ""
 
@@ -66,7 +67,7 @@ fun NotificationPage(
     })
 
     val notifications by notificationViewModel.notifications.collectAsState()
-
+    val isLoading by notificationViewModel.isLoading.collectAsState()
     LaunchedEffect(Unit) {
         userId = userViewModel.getUserAttributeString("userId")
         notificationViewModel.fetchNotificationByUserId(userId)
@@ -84,7 +85,7 @@ fun NotificationPage(
         ) {
             Spacer(modifier = Modifier.height(15.dp))
             Text(
-                text = "Thông báo",
+                text = "Notification",
                 fontWeight = FontWeight.Bold,
                 fontSize = 25.sp,
                 modifier = Modifier
@@ -94,20 +95,25 @@ fun NotificationPage(
             )
             Spacer(modifier = Modifier.height(15.dp))
         }
-        Column (
-            modifier = Modifier
-                .padding(horizontal = 10.dp)
-        ){
-        if (notifications.isEmpty()) {
-            EmptyList("thông báo")
-        } else {
-            NotificationSectionFrame(
-                navHostController = navHostController,
-                notifications = notifications,
-                notificationViewModel = notificationViewModel
-            )
+        if (isLoading){
+            ListNotificationSkeleton()
         }
-    }
+        else{
+            Column (
+                modifier = Modifier
+                    .padding(horizontal = 10.dp)
+            ) {
+                if (notifications.isEmpty()) {
+                    EmptyList("thông báo")
+                } else {
+                    NotificationSectionFrame(
+                        navHostController = navHostController,
+                        notifications = notifications,
+                        notificationViewModel = notificationViewModel
+                    )
+                }
+            }
+        }
     }
 }
 

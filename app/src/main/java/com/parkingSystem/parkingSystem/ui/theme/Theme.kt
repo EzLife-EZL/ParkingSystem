@@ -73,7 +73,7 @@ private val LightColorScheme = lightColorScheme(
     //Màu chủ đạo app xanh
     primaryContainer = MainTheme,
     //Đối tượng trên nền màu chủ đạo
-    onPrimaryContainer = Color.Black,
+    onPrimaryContainer = Color.White,
     //Màu nền phần nội dung (trắng)
     background = Color.White,
     //Đối tượng trên background (đen)

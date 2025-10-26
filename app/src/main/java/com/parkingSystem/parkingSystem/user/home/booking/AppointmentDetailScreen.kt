@@ -160,7 +160,7 @@ fun ParkingBookingDetailScreen(
                     Text("OK")
                 }
             },
-            title = { Text(if (isSuccess) "Thành công" else "Thông báo") },
+            title = { Text(if (isSuccess) "Success" else "Notification") },
             text = { Text(dialogMessage) }
         )
     }
@@ -171,7 +171,7 @@ fun ParkingBookingDetailScreen(
         Box(modifier = Modifier.fillMaxSize()) {
             Column(modifier = Modifier.fillMaxSize()) {
                 TopBar(
-                    title = "Chi tiết đặt chỗ",
+                    title = "Book detail",
                     onClick = { navHostController.popBackStack() }
                 )
 
@@ -395,7 +395,7 @@ fun ParkingInfoSection(
             )
 
             Column {
-                Text("Bãi đậu xe", fontWeight = FontWeight.Medium, fontSize = 14.sp)
+                Text("Park information", fontWeight = FontWeight.Medium, fontSize = 14.sp)
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(parkName, fontWeight = FontWeight.Bold, fontSize = 18.sp)
                 Spacer(modifier = Modifier.height(4.dp))
@@ -406,7 +406,7 @@ fun ParkingInfoSection(
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
-                    "Loại xe: $parkTypeVehicle",
+                    "Type vehicle: $parkTypeVehicle",
                     fontSize = 13.sp,
                     color = MaterialTheme.colorScheme.primary
                 )
@@ -430,7 +430,7 @@ fun SlotInfoSection(
         )
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
-            Text("Vị trí đậu xe", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+            Text("Parking position", fontWeight = FontWeight.Bold, fontSize = 16.sp)
             Spacer(modifier = Modifier.height(12.dp))
 
             Row(
@@ -439,7 +439,7 @@ fun SlotInfoSection(
             ) {
                 Column {
                     Text(
-                        "Số vị trí:",
+                        "Number of slot:",
                         fontSize = 14.sp,
                         color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.7f)
                     )
@@ -448,7 +448,7 @@ fun SlotInfoSection(
 
                 Column(horizontalAlignment = Alignment.End) {
                     Text(
-                        "Tọa độ:",
+                        "Position:",
                         fontSize = 14.sp,
                         color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.7f)
                     )
@@ -491,7 +491,7 @@ fun UserInfoSection(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "Xem chi tiết",
+                    text = "More detail",
                     color = MaterialTheme.colorScheme.onSecondaryContainer,
                     fontSize = 13.sp,
                     modifier = Modifier.clickable { showDetailDialog = true }
@@ -513,18 +513,18 @@ fun UserInfoSection(
                     .background(MaterialTheme.colorScheme.surface, RoundedCornerShape(12.dp))
                     .padding(16.dp)
             ) {
-                Text("Thông tin người đặt:", fontWeight = FontWeight.Bold)
+                Text("User's information:", fontWeight = FontWeight.Bold)
                 Spacer(modifier = Modifier.height(8.dp))
-                InfoRow("Họ và tên:", userName)
-                InfoRow("Điện thoại:", userPhone)
+                InfoRow("Full name:", userName)
+                InfoRow("Phone number:", userPhone)
 
                 Spacer(modifier = Modifier.height(12.dp))
-                Text("Biển số xe:", fontWeight = FontWeight.Medium, fontSize = 14.sp)
+                Text("Number plate:", fontWeight = FontWeight.Medium, fontSize = 14.sp)
                 Spacer(modifier = Modifier.height(4.dp))
                 OutlinedTextField(
                     value = vehicleNumber,
                     onValueChange = onVehicleNumberChange,
-                    placeholder = { Text("VD: 30A-123.45 hoặc 30A-12345") },
+                    placeholder = { Text("Exp: 30A-123.45 or 30A-12345") },
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true,
                     isError = plateError != null,
@@ -545,17 +545,17 @@ fun UserInfoSection(
     if (showDetailDialog) {
         AlertDialog(
             onDismissRequest = { showDetailDialog = false },
-            title = { Text("Chi tiết thông tin") },
+            title = { Text("Detail information") },
             text = {
                 Column {
-                    InfoRow("Họ và tên:", userName)
-                    InfoRow("Điện thoại:", userPhone)
-                    InfoRow("Biển số xe:", vehicleNumber.ifEmpty { "Chưa nhập" })
+                    InfoRow("Full name:", userName)
+                    InfoRow("Phone:", userPhone)
+                    InfoRow("Number plate:", vehicleNumber.ifEmpty { "Not assign" })
                 }
             },
             confirmButton = {
                 TextButton(onClick = { showDetailDialog = false }) {
-                    Text("Đóng")
+                    Text("Close")
                 }
             }
         )
@@ -578,7 +578,7 @@ fun NoteSection(notes: String, onNoteChange: (String) -> Unit) {
         OutlinedTextField(
             value = notes,
             onValueChange = onNoteChange,
-            placeholder = { Text("Nhập ghi chú (nếu có)...") },
+            placeholder = { Text("Note (if necessary):") },
             modifier = Modifier
                 .fillMaxWidth()
                 .height(90.dp),
@@ -592,12 +592,12 @@ fun FeeSummarySection(
     parkPrice: Double,
     parkTypeVehicle: String
 ) {
-    CardSection(title = "Chi phí đậu xe") {
-        InfoRow("Giá/giờ", "${String.format("%,.0f", parkPrice)}đ")
-        InfoRow("Loại xe", parkTypeVehicle)
+    CardSection(title = "Price") {
+        InfoRow("Per hour", "${String.format("%,.0f", parkPrice)}đ")
+        InfoRow("Type of vehicle", parkTypeVehicle)
         HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
         InfoRow(
-            "Tổng tiền",
+            "Sum of money",
             "${String.format("%,.0f", parkPrice)}đ",
             valueColor = MaterialTheme.colorScheme.primary,
             fontWeight = FontWeight.Bold
@@ -625,7 +625,7 @@ fun BookParkingButton(
             )
         } else {
             Text(
-                text = "Đặt chỗ ngay",
+                text = "Book now",
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Bold
             )

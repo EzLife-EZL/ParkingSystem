@@ -21,6 +21,7 @@ import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.LightMode
 import androidx.compose.material.icons.filled.Logout
+import androidx.compose.material.icons.filled.ModeEdit
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Divider
 import androidx.compose.material3.Icon
@@ -60,16 +61,16 @@ fun Setting(
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
     ) {
-        SectionSetting("Chế độ tối", darkTheme, onToggleTheme)
+        SectionSetting("Theme mode", darkTheme, onToggleTheme)
 
         SectionSetting(
-            "Chỉnh sửa thông tin cá nhân",
-            iconVector = Icons.Default.Person,
+            "Modify personal information",
+            iconVector = Icons.Default.ModeEdit,
             onPress = {
                 navHostController.navigate("editProfile")
             })
         SectionSetting(
-            nameField = "Đăng xuất",
+            nameField = "Log out",
             iconVector = Icons.Default.Logout,
             onPress = {
                 logoutWithGoogle(context, sharedPreferences)
