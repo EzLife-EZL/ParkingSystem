@@ -42,15 +42,6 @@ fun BookingCalendarScreen(
     navHostController: NavHostController
 ) {
     val sharedPreferences = context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
-    val doctorViewModel: ParkingViewModel = viewModel(factory = viewModelFactory {
-        initializer { ParkingViewModel(sharedPreferences) }
-    })
-
-    // Lấy thông tin chỉnh sửa từ màn hình trước đó
-    val doctorId = navHostController.previousBackStackEntry?.savedStateHandle?.get<String>("doctorId") ?: ""
-    val isEditing = navHostController.previousBackStackEntry?.savedStateHandle?.get<Boolean>("isEditing") ?: false
-    val appointmentId = navHostController.previousBackStackEntry?.savedStateHandle?.get<String>("appointmentId") ?: ""
-
     var availableTimes by remember { mutableStateOf<List<String>>(emptyList()) }
 
     // Thêm state để lưu trữ available slots data

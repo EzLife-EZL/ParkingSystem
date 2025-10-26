@@ -76,13 +76,16 @@ fun HealthMateHomeScreen(
     var showReportBox by remember { mutableStateOf(false) }
     var userModel by remember { mutableStateOf("") }
     var username = ""
+    var userphone = ""
 
     val parks by parkingViewModel.parks.collectAsState()
     LaunchedEffect(Unit) {
         username = userViewModel.getUserAttributeString("name")
         userModel = userViewModel.getUserAttributeString("role")
+        userphone = userViewModel.getUserAttributeString("phone")
 
         println("USERNNAME trong HomeScreen: $username")
+        println("USER PHONE trong HomeScreen: $userphone")
 
         println("USERID tronng HomeScreen: ${userViewModel.getUserAttributeString("userId")}")
         userViewModel.getAllUserAttributeString()

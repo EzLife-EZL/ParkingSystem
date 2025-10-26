@@ -86,7 +86,7 @@ fun FootBar(currentRoute: String?,navHostController: NavHostController) {
 
         // Floating button in the center
         CircleButton(
-            onClick = {navHostController.navigate("create_post")},
+            onClick = {navHostController.navigate("qr-scanner")},
             modifier = Modifier
                 .align(Alignment.TopCenter)
                 .offset(y = -30.dp), // Elevate the button

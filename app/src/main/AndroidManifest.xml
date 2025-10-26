@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    package="com.parkingSystem.parkingSystem" >
+    package="com.parkingSystem.parkingSystem">
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
@@ -30,10 +30,12 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.HealthCareSystem"
         android:usesCleartextTraffic="true"
-        tools:targetApi="31" >
+        tools:targetApi="31">
         <activity
-            android:name=".staff.StaffActivityScreen"
-            android:exported="false" />
+            android:name=".user.home.booking.QrScanActivity"
+            android:exported="false"
+            android:label="@string/title_activity_qr_scan"
+            android:theme="@style/Theme.HealthCareSystem" />
 
         <meta-data
             android:name="com.google.firebase.messaging.default_notification_icon"
@@ -41,7 +43,7 @@
         <activity
             android:name=".admin.AdminRoot"
             android:exported="true"
-            android:theme="@style/Theme.HealthCareSystem" >
+            android:theme="@style/Theme.HealthCareSystem">
 
             <!-- <intent-filter> -->
             <!-- <action android:name="android.intent.action.MAIN" /> -->
@@ -53,7 +55,7 @@
         <activity
             android:name=".user.home.root.HomeActivity"
             android:exported="true"
-            android:theme="@style/Theme.HealthCareSystem" >
+            android:theme="@style/Theme.HealthCareSystem">
 
             <!-- <intent-filter> -->
             <!-- <action android:name="android.intent.action.MAIN" /> -->
@@ -78,7 +80,7 @@
             android:name=".user.home.startscreen.Intro1"
             android:exported="true"
             android:launchMode="singleTop"
-            android:theme="@style/Theme.HealthCareSystem" >
+            android:theme="@style/Theme.HealthCareSystem">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -87,7 +89,7 @@
         </activity>
         <activity
             android:name=".user.home.startscreen.SignIn"
-            android:exported="true" >
+            android:exported="true">
 
             <!-- <intent-filter> -->
             <!-- <action android:name="android.intent.action.MAIN" /> -->
@@ -112,12 +114,15 @@
             android:name=".user.home.startscreen.SignUp"
             android:exported="true" />
         <activity
+            android:name=".user.home.startscreen.VerifyOtpSignUpAcctivity"
+            android:exported="true" />
+        <activity
             android:name=".user.home.startscreen.SecondSignUp"
             android:exported="true" />
 
         <service
             android:name=".notification.MyFirebaseMessagingService"
-            android:exported="true" >
+            android:exported="true">
             <intent-filter>
                 <action android:name="com.google.firebase.MESSAGING_EVENT" />
             </intent-filter>
