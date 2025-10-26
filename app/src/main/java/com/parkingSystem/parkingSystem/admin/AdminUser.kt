@@ -2,6 +2,8 @@ package com.parkingSystem.parkingSystem.admin
 
 import android.content.Context
 import android.content.SharedPreferences
+import android.icu.text.SimpleDateFormat
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -38,6 +40,10 @@ import coil.compose.rememberAsyncImagePainter
 import com.parkingSystem.parkingSystem.requestmodel.UpdateUserInput
 import com.parkingSystem.parkingSystem.responsemodel.User
 import com.parkingSystem.parkingSystem.viewmodel.UserViewModel
+import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.foundation.verticalScroll
+import java.util.Date
+import java.util.Locale
 
 @Composable
 fun UserListScreen() {
@@ -72,7 +78,7 @@ fun UserListScreen() {
             text = "${users.size} accounts",
             color = Color.White,
             modifier = Modifier
-                .background(Color(0xFF2E7D32), shape = RoundedCornerShape(8.dp))
+                .background(Color(0xFF002E5D), shape = RoundedCornerShape(8.dp))
                 .padding(horizontal = 12.dp, vertical = 4.dp)
         )
 
@@ -115,14 +121,14 @@ fun UserListScreen() {
 fun DropdownMenuRoleSelector(selected: String, onSelected: (String) -> Unit) {
     var expanded by remember { mutableStateOf(false) }
     Box {
-        Button(onClick = { expanded = true }) {
+        Button(onClick = { expanded = true }, colors = ButtonDefaults.buttonColors(Color(0xFF002E5D))) {
             Text(text = selected)
         }
         DropdownMenu(
             expanded = expanded,
             onDismissRequest = { expanded = false }
         ) {
-            listOf("User", "Admin").forEach { role ->
+            listOf("User", "Admin", "Staff").forEach { role ->
                 DropdownMenuItem(
                     text = { Text(role) },
                     onClick = {
@@ -201,8 +207,16 @@ fun AccountRow2(uid: Int, account: User, sharedPreferences: SharedPreferences) {
         TableCell(account.email ?: "N/A", width = TableWidths.EMAIL, height = 56.dp)
         TableCell(account.phone ?: "N/A", width = TableWidths.PHONE, height = 56.dp)
         TableCell(account.address ?: "N/A", width = TableWidths.ADDRESS, height = 56.dp)
-        TableCell(account.createdAt ?: "N/A", width = TableWidths.CREATED, height = 56.dp)
-        TableCell(account.updatedAt ?: "N/A", width = TableWidths.UPDATED, height = 56.dp)
+        TableCell(
+            account.createdAt ?: "N/A",
+            width = TableWidths.CREATED,
+            height = 56.dp
+        )
+        TableCell(
+            account.updatedAt ?: "N/A",
+            width = TableWidths.UPDATED,
+            height = 56.dp
+        )
 
         // Actions Cell
         Box(
@@ -404,9 +418,17 @@ fun EditUserDialog(
 ) {
     var name by remember { mutableStateOf(user.name ?: "") }
     var email by remember { mutableStateOf(user.email ?: "") }
-    var phone by remember { mutableStateOf(user.phone ?: "") }
+    var phone by remember {
+        mutableStateOf(
+            user.phone?.replace("+84", "0")?.let {
+                if (!it.startsWith("0")) "0$it" else it
+            } ?: ""
+        )
+    }
     var address by remember { mutableStateOf(user.address ?: "") }
     var password by remember { mutableStateOf("") }
+    var selectedRole by remember { mutableStateOf(user.role ?: "User") }
+    var expandedRole by remember { mutableStateOf(false) }
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -417,9 +439,9 @@ fun EditUserDialog(
                     name = name,
                     email = email,
                     phone = phone,
-                    password = password.takeIf { it.isNotBlank() } ?: "",
-                    role = user.role ?: "User"
+                    password = if (password.isNotBlank()) password else null,                      role = selectedRole
                 )
+                Log.d("EditDialog", "Sending update data: $updatedInput")
                 onSave(user.uid, updatedInput, context)
                 onDismiss()
             }) {
@@ -436,14 +458,68 @@ fun EditUserDialog(
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 OutlinedTextField(value = name, onValueChange = { name = it }, label = { Text("Full name") })
                 OutlinedTextField(value = email, onValueChange = { email = it }, label = { Text("Email") })
-                OutlinedTextField(value = phone, onValueChange = { phone = it }, label = { Text("Phone") })
+                OutlinedTextField(
+                    value = phone,
+                    onValueChange = { newValue ->
+                        val cleaned = newValue
+                            .replace("+84", "")
+                            .replace(" ", "")
+                            .filter { it.isDigit() }
+
+                        phone = if (cleaned.isEmpty()) {
+                            ""
+                        } else if (!cleaned.startsWith("0")) {
+                            "0$cleaned"
+                        } else {
+                            cleaned
+                        }
+                    },
+                    label = { Text("Phone") },
+                    placeholder = { Text("0xxxxxxxxx") },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true
+                )
                 OutlinedTextField(value = address, onValueChange = { address = it }, label = { Text("Address") })
+
+                Box(modifier = Modifier.fillMaxWidth()) {
+                    OutlinedTextField(
+                        value = selectedRole,
+                        onValueChange = {},
+                        readOnly = true,
+                        label = { Text("Role") },
+                        trailingIcon = {
+                            IconButton(onClick = { expandedRole = true }) {
+                                Icon(
+                                    imageVector = Icons.Default.ArrowDropDown,
+                                    contentDescription = "Select Role"
+                                )
+                            }
+                        },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    DropdownMenu(
+                        expanded = expandedRole,
+                        onDismissRequest = { expandedRole = false }
+                    ) {
+                        listOf("User", "Admin", "Staff").forEach { role ->
+                            DropdownMenuItem(
+                                text = { Text(role) },
+                                onClick = {
+                                    selectedRole = role
+                                    expandedRole = false
+                                }
+                            )
+                        }
+                    }
+                }
+
                 OutlinedTextField(
                     value = password,
                     onValueChange = { password = it },
                     label = { Text("New password (leave blank to keep)") },
                     visualTransformation = PasswordVisualTransformation()
                 )
+
             }
         },
         shape = RoundedCornerShape(12.dp)
@@ -462,7 +538,7 @@ fun TableCell(
             .width(width)
             .height(height)
             .background(
-                if (isHeader) Color(0xFF2B544F)
+                if (isHeader) Color(0xFF002E5D)
                 else Color.Transparent
             )
             .border(0.5.dp, Color.LightGray)

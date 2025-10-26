@@ -204,7 +204,7 @@ class HomeActivity : BaseActivity() {
             modifier = modifier
         ) {
             composable("home") {
-                HealthMateHomeScreen(
+                MainScreen(
                     modifier = Modifier.fillMaxSize(),
                     sharedPreferences = sharedPreferences,
                     navHostController = navHostController,
@@ -300,6 +300,17 @@ class HomeActivity : BaseActivity() {
 //
 //                )
 //            }
+
+            composable ("edit-user") {
+                EditUserProfile(
+                    sharedPreferences,
+                    navHostController
+                )
+            }
+
+
+
+
         }
 
     }

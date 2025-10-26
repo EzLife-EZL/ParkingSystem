@@ -51,7 +51,7 @@ fun BookingHistoryScreen(
     val userId = jwt?.getClaim("userId")?.asString()
 
     var selectedTab by remember { mutableStateOf(0) }
-    val tabs = listOf("Chờ duyệt", "Hoàn tất", "Đã huỷ")
+    val tabs = listOf("Booked", "Done", "Canceled")
 
     LaunchedEffect(userId) {
         userId?.let { vm.fetchBookingHistory(it) }
@@ -72,7 +72,7 @@ fun BookingHistoryScreen(
             .background(gradient.primary)
     ) {
         Text(
-            text = "Lịch sử đặt chỗ",
+            text = "Booking history",
             style = MaterialTheme.typography.titleLarge.copy(
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onPrimaryContainer
@@ -115,12 +115,6 @@ fun BookingHistoryScreen(
                     )
                 }
 
-                bookings.isEmpty() -> {
-                    CenterMessage(
-                        text = "Chưa có lịch sử đặt chỗ.",
-                        color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f)
-                    )
-                }
 
                 else -> {
                     Column(
@@ -184,7 +178,7 @@ fun BookingHistoryScreen(
                                 contentAlignment = Alignment.Center
                             ) {
                                 Text(
-                                    text = "Không có dữ liệu trong mục này.",
+                                    text = "No booking found",
                                     style = MaterialTheme.typography.bodyMedium.copy(
                                         color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f),
                                         fontWeight = FontWeight.Medium

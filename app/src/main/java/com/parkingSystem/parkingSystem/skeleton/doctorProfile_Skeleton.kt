@@ -1,5 +1,6 @@
 package com.parkingSystem.parkingSystem.skeleton
 
+import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
@@ -11,6 +12,8 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -25,6 +28,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
@@ -54,6 +58,111 @@ fun ShimmerEffect(
                 RoundedCornerShape(8.dp)
             )
     )
+}
+
+// Skeleton for ParkList
+@Composable
+fun ParkListSkeleton() {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp)
+    ) {
+        // Header skeleton
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 12.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            ShimmerEffect(
+                modifier = Modifier
+                    .weight(1f)
+                    .clip(RoundedCornerShape(4.dp))
+            )
+            ShimmerEffect(
+                modifier = Modifier
+                    .weight(1f)
+                    .clip(RoundedCornerShape(4.dp))
+            )
+        }
+
+        // Park items skeleton
+        repeat(5) {
+            ParkItemSkeleton()
+            Spacer(modifier = Modifier.height(12.dp))
+        }
+    }
+}
+
+// Skeleton for individual Park item
+@Composable
+fun ParkItemSkeleton() {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(120.dp),
+        shape = RoundedCornerShape(12.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(12.dp)
+        ) {
+            // Image skeleton
+            ShimmerEffect(
+                modifier = Modifier
+                    .size(96.dp)
+                    .clip(RoundedCornerShape(8.dp))
+            )
+
+            Spacer(modifier = Modifier.width(12.dp))
+
+            // Content skeleton
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxHeight(),
+                verticalArrangement = Arrangement.SpaceBetween
+            ) {
+                Column {
+                    ShimmerEffect(
+                        modifier = Modifier
+                            .height(20.dp)
+                            .fillMaxWidth(0.8f)
+                            .clip(RoundedCornerShape(4.dp))
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    ShimmerEffect(
+                        modifier = Modifier
+                            .height(16.dp)
+                            .fillMaxWidth(0.6f)
+                            .clip(RoundedCornerShape(4.dp))
+                    )
+                }
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    ShimmerEffect(
+                        modifier = Modifier
+                            .height(18.dp)
+                            .width(60.dp)
+                            .clip(RoundedCornerShape(4.dp))
+                    )
+                    ShimmerEffect(
+                        modifier = Modifier
+                            .height(18.dp)
+                            .width(80.dp)
+                            .clip(RoundedCornerShape(4.dp))
+                    )
+                }
+            }
+        }
+    }
 }
 
 @Composable
@@ -288,6 +397,27 @@ fun RatingOverviewSkeleton() {
             if (index < 3) {
                 Spacer(modifier = Modifier.height(16.dp))
             }
+        }
+    }
+}
+
+@Composable
+fun ListNotificationSkeleton(){
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp)
+    ) {
+        //Lặp lại 5 lần
+        repeat(8) {
+            ShimmerEffect(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(60.dp)
+                    .clip(RoundedCornerShape(12.dp)),
+                durationMillis = 500
+            )
+            Spacer(modifier = Modifier.height(16.dp))
         }
     }
 }

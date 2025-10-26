@@ -192,12 +192,12 @@ class SignIn : BaseActivity() {
                         }
                     } else {
                         val errorBody = response.errorBody()?.string()
-                        Toast.makeText(this@SignIn, "Đăng nhập thất bại: $errorBody", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(this@SignIn, "Sign in fail: $errorBody", Toast.LENGTH_SHORT).show()
                     }
                 }
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) {
-                    Toast.makeText(this@SignIn, "Lỗi kết nối: ${e.message}", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this@SignIn, "Error connection: ${e.message}", Toast.LENGTH_SHORT).show()
                 }
             }
         }
@@ -276,11 +276,11 @@ class SignIn : BaseActivity() {
                                                 }
                                             }
 
-                                            Toast.makeText(this@SignIn, "Đăng nhập thành công!", Toast.LENGTH_SHORT).show()
+                                            Toast.makeText(this@SignIn, "Successful", Toast.LENGTH_SHORT).show()
                                             startActivity(intent)
                                             finish()
                                         } catch (e: Exception) {
-                                            Toast.makeText(this@SignIn, "Lỗi đọc token: ${e.message}", Toast.LENGTH_SHORT).show()
+                                            Toast.makeText(this@SignIn, "Error read token: ${e.message}", Toast.LENGTH_SHORT).show()
                                             Log.e("JWT_ERROR", "JWT parsing error", e)
                                         }
                                     } else {
@@ -294,7 +294,7 @@ class SignIn : BaseActivity() {
                                 val errorBody = response.errorBody()?.string()
                                 println("Login that bai")
 
-                                Toast.makeText(this@SignIn, "Đăng nhập thất bại: $errorBody", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(this@SignIn, "Fail sign in: $errorBody", Toast.LENGTH_SHORT).show()
                                 Log.e("API_ERROR", "Login failed: $errorBody")
                             }
 
@@ -310,7 +310,7 @@ class SignIn : BaseActivity() {
                 }
             } else {
                 hideProgressBar()
-                Toast.makeText(this, "Không thể đăng nhập. Vui lòng thử lại sau.", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Can not sign in, check back later", Toast.LENGTH_SHORT).show()
             }
         }
     }

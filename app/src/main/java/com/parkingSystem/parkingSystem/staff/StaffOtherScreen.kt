@@ -140,7 +140,7 @@ fun StaffSettingScreen(
     ) {
         item {
             Text(
-                text = "Cài đặt",
+                text = "Setting",
                 fontSize = 24.sp,
                 fontWeight = FontWeight.Bold
             )
@@ -153,7 +153,7 @@ fun StaffSettingScreen(
         // Profile Section
         item {
             Text(
-                text = "Tài khoản",
+                text = "Account",
                 fontSize = 18.sp,
                 fontWeight = FontWeight.SemiBold
             )
@@ -162,8 +162,8 @@ fun StaffSettingScreen(
         item {
             SettingCard(
                 icon = Icons.Default.Person,
-                title = "Thông tin cá nhân",
-                subtitle = "Xem và chỉnh sửa thông tin",
+                title = "Personal information",
+                subtitle = "Edit information",
                 onClick = { /* TODO: Navigate to profile */ }
             )
         }
@@ -171,8 +171,8 @@ fun StaffSettingScreen(
         item {
             SettingCard(
                 icon = Icons.Default.Lock,
-                title = "Đổi mật khẩu",
-                subtitle = "Cập nhật mật khẩu của bạn",
+                title = "Change password",
+                subtitle = "Update password",
                 onClick = { /* TODO: Change password */ }
             )
         }
@@ -181,7 +181,7 @@ fun StaffSettingScreen(
         item {
             Spacer(modifier = Modifier.height(16.dp))
             Text(
-                text = "Ứng dụng",
+                text = "Application",
                 fontSize = 18.sp,
                 fontWeight = FontWeight.SemiBold
             )
@@ -190,26 +190,16 @@ fun StaffSettingScreen(
         item {
             SettingCard(
                 icon = Icons.Default.Notifications,
-                title = "Thông báo",
-                subtitle = "Quản lý thông báo",
+                title = "Notification",
+                subtitle = "Notification management",
                 onClick = { /* TODO: Notification settings */ }
             )
         }
-
-        item {
-            SettingCard(
-                icon = Icons.Default.Language,
-                title = "Ngôn ngữ",
-                subtitle = "Tiếng Việt",
-                onClick = { /* TODO: Language settings */ }
-            )
-        }
-
         // About Section
         item {
             Spacer(modifier = Modifier.height(16.dp))
             Text(
-                text = "Khác",
+                text = "Other",
                 fontSize = 18.sp,
                 fontWeight = FontWeight.SemiBold
             )
@@ -218,8 +208,8 @@ fun StaffSettingScreen(
         item {
             SettingCard(
                 icon = Icons.Default.Info,
-                title = "Về ứng dụng",
-                subtitle = "Phiên bản 1.0.0",
+                title = "About app",
+                subtitle = "Ver 1.0",
                 onClick = { /* TODO: About */ }
             )
         }
@@ -227,8 +217,8 @@ fun StaffSettingScreen(
         item {
             SettingCard(
                 icon = Icons.Default.Help,
-                title = "Trợ giúp",
-                subtitle = "Câu hỏi thường gặp và hỗ trợ",
+                title = "Help",
+                subtitle = "FAQ",
                 onClick = { /* TODO: Help */ }
             )
         }
@@ -256,7 +246,7 @@ fun StaffSettingScreen(
             ) {
                 Icon(Icons.Default.Logout, contentDescription = null)
                 Spacer(modifier = Modifier.width(8.dp))
-                Text("Đăng xuất", fontSize = 16.sp)
+                Text("Sign out", fontSize = 16.sp)
             }
         }
     }

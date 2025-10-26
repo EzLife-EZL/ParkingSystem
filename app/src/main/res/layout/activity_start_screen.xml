@@ -22,7 +22,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:gravity="center"
-        android:text="TRƯỚC KHI BẮT ĐẦU"
+        android:text="BEFORE START"
         android:textColor="@color/white"
         android:textSize="30dp"
         android:textStyle="bold" />
@@ -32,7 +32,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="15dp"
         android:gravity="center"
-        android:text="Vui lòng đăng nhập hoặc tạo tài khoản để sử dụng nhé\nKhông tốn nhiều thời gian đâu ^_^"
+        android:text="Please sign in or sign up \n it won't take too much time ^_^"
         android:textColor="@color/white"
         android:textSize="25dp"
         android:textStyle="normal" />
@@ -47,7 +47,7 @@
         android:layout_width="300dp"
         android:layout_height="wrap_content"
         android:backgroundTint="@color/blueblack"
-        android:text="ĐĂNG NHẬP"
+        android:text="Sign in"
         android:textColor="@color/white"
         app:strokeColor="@color/white"
         app:strokeWidth="1dp"/>
@@ -58,7 +58,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="10dp"
         android:backgroundTint="@color/white"
-        android:text="ĐĂNG KÝ"
+        android:text="Sign up"
         android:textColor="@color/black"
         android:textStyle="bold"
         app:strokeColor="@color/black"

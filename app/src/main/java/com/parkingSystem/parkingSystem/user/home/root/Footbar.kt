@@ -77,11 +77,11 @@ fun FootBar(currentRoute: String?,navHostController: NavHostController) {
             verticalAlignment = Alignment.Top,
 
         ) {
-            BoxItem(nameRoute = "Trang chủ", icon = "trangchu", nameDirection = "home",  navHostController,currentRoute)
-            BoxItem(nameRoute = "Lịch sử", icon = "history","history", navHostController,currentRoute)
+            BoxItem(nameRoute = "Main", icon = "trangchu", nameDirection = "home",  navHostController,currentRoute)
+            BoxItem(nameRoute = "History", icon = "history","history", navHostController,currentRoute)
             Spacer(modifier = Modifier.width(50.dp)) // Space for the floating button
-            BoxItem(nameRoute = "Thông báo", icon = "thongbao","notification", navHostController,currentRoute)
-            BoxItem(nameRoute = "Cài đặt", icon = "setting","setting", navHostController,currentRoute)
+            BoxItem(nameRoute = "Notification", icon = "thongbao","notification", navHostController,currentRoute)
+            BoxItem(nameRoute = "Setting", icon = "setting","setting", navHostController,currentRoute)
         }
 
         // Floating button in the center
@@ -235,7 +235,7 @@ fun BoxItem(
             contentDescription = null,
             modifier = Modifier.height(20.dp),
             tint = if (!isSelected) {
-                MaterialTheme.colorScheme.background
+                MaterialTheme.colorScheme.onPrimaryContainer
             } else {
                 MaterialTheme.colorScheme.onBackground
             }
@@ -246,7 +246,7 @@ fun BoxItem(
             fontSize = 11.sp,
             fontWeight = FontWeight.Bold,
             color = if (!isSelected) {
-                MaterialTheme.colorScheme.background
+                MaterialTheme.colorScheme.onPrimaryContainer
             } else {
                 MaterialTheme.colorScheme.onBackground
             }        )

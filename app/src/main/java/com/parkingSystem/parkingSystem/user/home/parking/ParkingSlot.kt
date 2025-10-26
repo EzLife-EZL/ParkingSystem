@@ -53,7 +53,7 @@ fun ParkingSlot(
             .background(MaterialTheme.colorScheme.background)
     ) {
         TopBar(
-            title = "Bãi đậu xe",
+            title = "Park",
             onClick = { navHostController.popBackStack() },
         )
 
@@ -90,12 +90,12 @@ fun ParkingSlot(
                                 )
                             }
                             Text(
-                                text = "Địa chỉ: ${currentPark?.address}",
+                                text = "Address: ${currentPark?.address}",
                                 fontSize = 14.sp,
                                 color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f)
                             )
                             Text(
-                                text = "Giá: ${currentPark?.price}đ/${currentPark?.type_vehicle}",
+                                text = "Price: ${currentPark?.price}đ/${currentPark?.type_vehicle}",
                                 fontSize = 14.sp,
                                 fontWeight = FontWeight.Medium,
                                 color = MaterialTheme.colorScheme.primary
@@ -146,7 +146,7 @@ fun ParkingSlot(
                                 .padding(horizontal = 16.dp)
                         ) {
                             Text(
-                                text = "Chú thích:",
+                                text = "Note:",
                                 fontSize = 16.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.onBackground
@@ -155,13 +155,13 @@ fun ParkingSlot(
 
                             LegendItem(
                                 color = Color(0xFFFFEB3B),
-                                text = "Chỗ trống"
+                                text = "Blank"
                             )
                             Spacer(modifier = Modifier.height(8.dp))
 
                             LegendItem(
                                 color = Color(0xFFFF5722),
-                                text = "Đã đặt"
+                                text = "Booked"
                             )
                         }
 
@@ -192,8 +192,8 @@ fun ParkingGridLayout(
     slots: List<Slot>?,
     onSpotClick: (Slot) -> Unit
 ) {
-    val maxX = slots?.maxOfOrNull { it.pos_X } ?: 0
-    val maxY = slots?.maxOfOrNull { it.pos_Y } ?: 0
+    val maxX = slots?.maxOfOrNull { it.posXInt } ?: 0
+    val maxY = slots?.maxOfOrNull { it.posYInt } ?: 0
 
     Column(
         modifier = Modifier
@@ -207,7 +207,7 @@ fun ParkingGridLayout(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 for (x in 0..maxX) {
-                    val slot = slots?.find { it.pos_X == x && it.pos_Y == y }
+                    val slot = slots?.find { it.posXInt == x && it.posYInt == y }
 
                     if (slot != null) {
                         ParkingSpotCell(

@@ -1,7 +1,8 @@
 package com.parkingSystem.parkingSystem.responsemodel
 
 import com.google.gson.annotations.SerializedName
-
+import com.google.gson.annotations.JsonAdapter
+import com.parkingSystem.parkingSystem.api.TimestampDeserializer
 
 data class UserResponse(
     val users: List<User> =emptyList(),
@@ -15,7 +16,10 @@ data class User(
     val password: String? = null,
     val address: String? = null,
     val role: String? = null,
+    @JsonAdapter(TimestampDeserializer::class)
     val createdAt: String? = null,
+
+    @JsonAdapter(TimestampDeserializer::class)
     val updatedAt: String? = null,
 )
 

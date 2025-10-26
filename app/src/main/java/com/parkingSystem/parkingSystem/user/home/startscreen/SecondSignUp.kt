@@ -99,7 +99,7 @@ class SecondSignUp : BaseActivity() {
             }
 
             if (password!=repassword) {
-                Toast.makeText(this, "Mật khẩu nhập lại không trùng khớp", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "No fit password", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
 
@@ -117,17 +117,17 @@ class SecondSignUp : BaseActivity() {
                 withContext(Dispatchers.Main) {
                     if (response.isSuccessful) {
                         //toast chỉ có thể chạy ở main thread
-                        Toast.makeText(this@SecondSignUp, "Đăng ký thành công!", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(this@SecondSignUp, "Successfully sign up", Toast.LENGTH_SHORT).show()
                         startActivity(Intent(this@SecondSignUp, SignUpSuccess::class.java))
                     } else {
                         // Lấy lỗi từ API
                         val errorBody = response.errorBody()?.string()
-                        Toast.makeText(this@SecondSignUp, "Lỗi: $errorBody", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(this@SecondSignUp, "Error: $errorBody", Toast.LENGTH_SHORT).show()
                     }
                 }
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) {
-                    Toast.makeText(this@SecondSignUp, "Lỗi: ${e.message}", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this@SecondSignUp, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
                 }
             }
         }
