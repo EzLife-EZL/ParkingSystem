@@ -8,6 +8,7 @@ data class MakeReservationBody(
     val parkId: String,
     val slotId: String,
     val userId: String,
+    val price: Double,
     val startTime: String,
     val endTime: String,
     val numberPlate: String? = null,

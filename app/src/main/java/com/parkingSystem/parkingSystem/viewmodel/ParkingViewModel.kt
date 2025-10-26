@@ -33,6 +33,7 @@ class ParkingViewModel(private val sharedPreferences: SharedPreferences) : ViewM
         parkId: String,
         slotId: String,
         userId: String,
+        price: Double,
         startTimeIso: String,
         endTimeIso: String,
         numberPlate: String?
@@ -42,6 +43,7 @@ class ParkingViewModel(private val sharedPreferences: SharedPreferences) : ViewM
             parkId = parkId,
             slotId = slotId,
             userId = userId,
+            price = price,
             startTime = startTimeIso,
             endTime = endTimeIso,
             numberPlate = numberPlate,

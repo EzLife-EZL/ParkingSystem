@@ -267,6 +267,7 @@ fun ParkingBookingDetailScreen(
                                             parkId = park_id,
                                             slotId = slotId!!,
                                             userId = userId,
+                                            price = price,
                                             startTimeIso = startTimeIso,
                                             endTimeIso = endTimeIso,
                                             numberPlate = vehicleNumber
