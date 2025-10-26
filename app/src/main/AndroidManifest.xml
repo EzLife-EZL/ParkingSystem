@@ -32,7 +32,7 @@
         android:usesCleartextTraffic="true"
         tools:targetApi="31" >
         <activity
-            android:name=".staff.StaffScreen"
+            android:name=".staff.StaffActivityScreen"
             android:exported="false" />
 
         <meta-data
