@@ -36,6 +36,7 @@ fun ParkingSlot(
     val viewModel: ParkingViewModel = viewModel(factory = viewModelFactory {
         initializer { ParkingViewModel(sharedPreferences) }
     })
+
     LaunchedEffect(Unit) {
         println("Gọi được launched efect")
         if (parkId.isNotEmpty()) {
@@ -53,10 +54,9 @@ fun ParkingSlot(
             .background(MaterialTheme.colorScheme.background)
     ) {
         TopBar(
-            title = "Park",
-            onClick = { navHostController.popBackStack() },
+            title = "Bãi đậu xe",
+            onClick = { navHostController.popBackStack() }
         )
-
 
         when {
             isLoading -> {
@@ -90,12 +90,12 @@ fun ParkingSlot(
                                 )
                             }
                             Text(
-                                text = "Address: ${currentPark?.address}",
+                                text = "Địa chỉ: ${currentPark?.address}",
                                 fontSize = 14.sp,
                                 color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f)
                             )
                             Text(
-                                text = "Price: ${currentPark?.price}đ/${currentPark?.type_vehicle}",
+                                text = "Giá: ${currentPark?.price}đ/${currentPark?.type_vehicle}",
                                 fontSize = 14.sp,
                                 fontWeight = FontWeight.Medium,
                                 color = MaterialTheme.colorScheme.primary
@@ -123,7 +123,6 @@ fun ParkingSlot(
                                                 set("park_name", currentPark?.park_name)
                                                 set("address", currentPark?.address)
                                                 set("price", currentPark?.price)
-                                                set("slotId", slot.slot_id)
                                                 set("type_vehicle", currentPark?.type_vehicle)
                                                 set("slotName", slot.slotName)
                                                 set("slotPosX", slot.pos_X)
@@ -146,7 +145,7 @@ fun ParkingSlot(
                                 .padding(horizontal = 16.dp)
                         ) {
                             Text(
-                                text = "Note:",
+                                text = "Chú thích:",
                                 fontSize = 16.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.onBackground
@@ -155,13 +154,13 @@ fun ParkingSlot(
 
                             LegendItem(
                                 color = Color(0xFFFFEB3B),
-                                text = "Blank"
+                                text = "Chỗ trống"
                             )
                             Spacer(modifier = Modifier.height(8.dp))
 
                             LegendItem(
                                 color = Color(0xFFFF5722),
-                                text = "Booked"
+                                text = "Đã đặt"
                             )
                         }
 
@@ -192,8 +191,8 @@ fun ParkingGridLayout(
     slots: List<Slot>?,
     onSpotClick: (Slot) -> Unit
 ) {
-    val maxX = slots?.maxOfOrNull { it.posXInt } ?: 0
-    val maxY = slots?.maxOfOrNull { it.posYInt } ?: 0
+    val maxX = slots?.maxOfOrNull { it.pos_X } ?: 0
+    val maxY = slots?.maxOfOrNull { it.pos_Y } ?: 0
 
     Column(
         modifier = Modifier
@@ -207,7 +206,7 @@ fun ParkingGridLayout(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 for (x in 0..maxX) {
-                    val slot = slots?.find { it.posXInt == x && it.posYInt == y }
+                    val slot = slots?.find { it.pos_X == x && it.pos_Y == y }
 
                     if (slot != null) {
                         ParkingSpotCell(

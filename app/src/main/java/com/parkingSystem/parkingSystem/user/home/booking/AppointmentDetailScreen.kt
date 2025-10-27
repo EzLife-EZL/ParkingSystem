@@ -1,9 +1,6 @@
 package com.parkingSystem.parkingSystem.user.home.parking
 
 import android.content.Context
-import android.os.Build
-import android.util.Log
-import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -27,35 +24,10 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import androidx.navigation.NavHostController
-import com.parkingSystem.parkingSystem.retrofit.RetrofitInstance
-import com.parkingSystem.parkingSystem.ui.theme.LocalGradientTheme
 import com.parkingSystem.parkingSystem.viewmodel.ParkingViewModel
 import com.parkingSystem.parkingSystem.viewmodel.UserViewModel
 import kotlinx.coroutines.launch
-import retrofit2.HttpException
-import java.time.OffsetDateTime
-import java.time.ZoneOffset
 
-private const val TAG = "ParkingBooking"
-
-// Normalize plate number
-private fun normalizePlate(input: String): String =
-    input.trim().uppercase().replace("\\s+".toRegex(), "")
-
-// Validate Vietnam plate number
-private fun isValidVietnamPlate(raw: String): Boolean {
-    if (raw.isBlank()) return false
-
-    val plate = normalizePlate(raw)
-
-    val patterns = listOf(
-        Regex("""^\d{2}[A-Z]{1,2}-?\d{3}\.\d{2}$"""),  // 30A-123.45
-        Regex("""^\d{2}[A-Z]{1,2}-?\d{4,5}$""")        // 30A-12345
-    )
-    return patterns.any { it.matches(plate) }
-}
-
-@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun ParkingBookingDetailScreen(
     context: Context,
@@ -68,52 +40,42 @@ fun ParkingBookingDetailScreen(
     })
 
     val parkingViewModel: ParkingViewModel = viewModel(factory = viewModelFactory {
-        initializer {
-            ParkingViewModel(sharedPreferences).apply {
-                api = RetrofitInstance.userApi
-            }
-        }
+        initializer { ParkingViewModel(sharedPreferences) }
     })
-
-    var slotId by remember { mutableStateOf<String?>(null) }
-    val startTimeIso = remember { OffsetDateTime.now(ZoneOffset.UTC).toString() }
-    val endTimeIso = remember { OffsetDateTime.now(ZoneOffset.UTC).plusHours(2).toString() }
 
     val scope = rememberCoroutineScope()
 
-    // UI States
+    // Trạng thái loading và thông báo
     var isLoading by remember { mutableStateOf(false) }
     var showDialog by remember { mutableStateOf(false) }
     var dialogMessage by remember { mutableStateOf("") }
     var isSuccess by remember { mutableStateOf(false) }
+
+    // Biến trạng thái kiểm tra đã load xong data chưa
     var isDataLoaded by remember { mutableStateOf(false) }
 
-    // Parking info
+    // Thông tin bãi đậu xe và slot
     var park_id by remember { mutableStateOf("") }
     var park_name by remember { mutableStateOf("") }
     var address by remember { mutableStateOf("") }
     var price by remember { mutableStateOf(0.0) }
     var type_vehicle by remember { mutableStateOf("") }
 
-    // Slot info
     var slotName by remember { mutableStateOf("") }
     var slotPosX by remember { mutableStateOf(0) }
     var slotPosY by remember { mutableStateOf(0) }
 
-    // User info
+    // Thông tin người dùng
     var userId by remember { mutableStateOf("") }
     var userName by remember { mutableStateOf("") }
     var userPhone by remember { mutableStateOf("") }
     var userAddress by remember { mutableStateOf("") }
     var vehicleNumber by remember { mutableStateOf("") }
 
-    // Notes
+    // Ghi chú
     var notes by remember { mutableStateOf("") }
 
-    // Plate validation
-    var plateError by remember { mutableStateOf<String?>(null) }
-
-    // Load user info
+    // Lấy thông tin user
     LaunchedEffect(Unit) {
         userId = userViewModel.getUserAttributeString("userId")
         userName = userViewModel.getUserAttributeString("name")
@@ -121,27 +83,28 @@ fun ParkingBookingDetailScreen(
         userAddress = userViewModel.getUserAttributeString("address")
     }
 
-    // Load parking data from backstack
+    // Lấy thông tin từ backstack
     val savedStateHandle = navHostController.previousBackStackEntry?.savedStateHandle
 
     LaunchedEffect(Unit) {
+        // Lấy thông tin park
         savedStateHandle?.get<String>("park_id")?.let { park_id = it }
         savedStateHandle?.get<String>("park_name")?.let { park_name = it }
         savedStateHandle?.get<String>("address")?.let { address = it }
         savedStateHandle?.get<Double>("price")?.let { price = it }
         savedStateHandle?.get<String>("type_vehicle")?.let { type_vehicle = it }
 
-        savedStateHandle?.get<String>("slotId")?.let { slotId = it }
+        // Lấy thông tin slot
         savedStateHandle?.get<String>("slotName")?.let { slotName = it }
         savedStateHandle?.get<Int>("slotPosX")?.let { slotPosX = it }
         savedStateHandle?.get<Int>("slotPosY")?.let { slotPosY = it }
 
         isDataLoaded = true
-        Log.d(TAG, "Park: $park_id - $park_name")
-        Log.d(TAG, "Slot: $slotName ($slotPosX, $slotPosY)")
+        println("Park: $park_id - $park_name")
+        println("Slot: $slotName ($slotPosX, $slotPosY)")
     }
 
-    // Dialog
+    // Dialog thông báo
     if (showDialog) {
         AlertDialog(
             onDismissRequest = {
@@ -160,18 +123,18 @@ fun ParkingBookingDetailScreen(
                     Text("OK")
                 }
             },
-            title = { Text(if (isSuccess) "Success" else "Notification") },
+            title = { Text(if (isSuccess) "Thành công" else "Thông báo") },
             text = { Text(dialogMessage) }
         )
     }
-
-    Log.d(TAG, "isDataLoaded: $isDataLoaded, userId: $userId, parkId: $park_id")
-
+    println("isDataLoaded: $isDataLoaded \nuserId: $userId \nparkId: $park_id")
     if (isDataLoaded && userId.isNotBlank() && park_id.isNotBlank()) {
         Box(modifier = Modifier.fillMaxSize()) {
-            Column(modifier = Modifier.fillMaxSize()) {
+            Column(
+                modifier = Modifier.fillMaxSize()
+            ) {
                 TopBar(
-                    title = "Book detail",
+                    title = "Chi tiết đặt chỗ",
                     onClick = { navHostController.popBackStack() }
                 )
 
@@ -182,6 +145,7 @@ fun ParkingBookingDetailScreen(
                         .padding(horizontal = 16.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
+                    // Thông tin bãi đậu xe
                     item {
                         ParkingInfoSection(
                             parkName = park_name,
@@ -190,6 +154,7 @@ fun ParkingBookingDetailScreen(
                         )
                     }
 
+                    // Thông tin vị trí đậu xe
                     item {
                         SlotInfoSection(
                             slotName = slotName,
@@ -198,23 +163,17 @@ fun ParkingBookingDetailScreen(
                         )
                     }
 
+                    // Thông tin người đặt
                     item {
                         UserInfoSection(
                             userName = userName,
                             userPhone = userPhone,
                             vehicleNumber = vehicleNumber,
-                            plateError = plateError,
-                            onVehicleNumberChange = { newValue ->
-                                vehicleNumber = newValue
-                                plateError = when {
-                                    newValue.isBlank() -> null
-                                    !isValidVietnamPlate(newValue) -> "No sutable plate number. Example: 30A-123.45"
-                                    else -> null
-                                }
-                            }
+                            onVehicleNumberChange = { vehicleNumber = it }
                         )
                     }
 
+                    // Ghi chú
                     item {
                         NoteSection(
                             notes = notes,
@@ -222,6 +181,7 @@ fun ParkingBookingDetailScreen(
                         )
                     }
 
+                    // Tổng chi phí
                     item {
                         FeeSummarySection(
                             parkPrice = price,
@@ -229,83 +189,36 @@ fun ParkingBookingDetailScreen(
                         )
                     }
 
+                    // Nút đặt chỗ
                     item {
                         BookParkingButton(
+                            vehicleNumber = vehicleNumber,
                             isLoading = isLoading,
                             onBookClick = {
-                                // Validation
-                                plateError = when {
-                                    vehicleNumber.isBlank() -> "Please fill plate number"
-                                    !isValidVietnamPlate(vehicleNumber) -> "No sutable plate number. Example: 30A-123.45"
-                                    else -> null
-                                }
-
-                                if (plateError != null) {
-                                    dialogMessage = plateError!!
+                                if (vehicleNumber.isBlank()) {
+                                    dialogMessage = "Vui lòng nhập biển số xe"
                                     isSuccess = false
                                     showDialog = true
-                                    return@BookParkingButton
-                                }
-
-                                if (slotId.isNullOrBlank()) {
-                                    dialogMessage = "No slot found"
-                                    isSuccess = false
-                                    showDialog = true
-                                    return@BookParkingButton
-                                }
-
-                                isLoading = true
-                                scope.launch {
-                                    try {
-                                        Log.d(TAG, "Start booking...")
-                                        Log.d(TAG, "parkId: $park_id")
-                                        Log.d(TAG, "slotId: $slotId")
-                                        Log.d(TAG, "userId: $userId")
-                                        Log.d(TAG, "vehicleNumber: $vehicleNumber")
-
-                                        val response = parkingViewModel.bookSlot(
-                                            parkId = park_id,
-                                            slotId = slotId!!,
-                                            userId = userId,
-                                            startTimeIso = startTimeIso,
-                                            endTimeIso = endTimeIso,
-                                            numberPlate = vehicleNumber
-                                        )
-
-                                        Log.d(TAG, "Đặt chỗ thành công!")
-
-                                        isLoading = false
-                                        isSuccess = true
-                                        dialogMessage = response.message ?: "Đặt chỗ thành công!"
-                                        showDialog = true
-
-                                    } catch (e: HttpException) {
-                                        Log.e(TAG, "HTTP Error: ${e.code()}")
+                                } else {
+                                    isLoading = true
+                                    scope.launch {
                                         try {
-                                            val errorBody = e.response()?.errorBody()?.string()
-                                            Log.e(TAG, "Error Body: $errorBody")
-                                        } catch (ex: Exception) {
-                                            Log.e(TAG, "Cannot read error body", ex)
+                                            // Gọi API updateSlot
+                                            parkingViewModel.bookSlot(
+                                                parkId = park_id,
+                                                slot_name = slotName,
+                                            )
+
+                                            isLoading = false
+                                            isSuccess = true
+                                            dialogMessage = "Đặt chỗ thành công!"
+                                            showDialog = true
+                                        } catch (e: Exception) {
+                                            isLoading = false
+                                            isSuccess = false
+                                            dialogMessage = "Đặt chỗ thất bại: ${e.message}"
+                                            showDialog = true
                                         }
-
-                                        isLoading = false
-                                        isSuccess = false
-                                        dialogMessage = when (e.code()) {
-                                            400 -> "Chỗ đậu đã được đặt"
-                                            404 -> "Không tìm thấy vị trí"
-                                            500 -> "Lỗi server"
-                                            else -> "Lỗi kết nối (${e.code()})"
-                                        }
-                                        showDialog = true
-
-                                    } catch (e: Exception) {
-                                        Log.e(TAG, "Exception: ${e.message}")
-                                        e.printStackTrace()
-
-                                        isLoading = false
-                                        isSuccess = false
-                                        dialogMessage = "Lỗi: ${e.message ?: "Không xác định"}"
-                                        showDialog = true
                                     }
                                 }
                             }
@@ -322,34 +235,27 @@ fun ParkingBookingDetailScreen(
                         .background(Color.Black.copy(alpha = 0.5f)),
                     contentAlignment = Alignment.Center
                 ) {
-                    CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
+                    CircularProgressIndicator(
+                        color = MaterialTheme.colorScheme.primary
+                    )
                 }
             }
-        }
-    } else {
-        // Loading screen
-        Box(
-            modifier = Modifier.fillMaxSize(),
-            contentAlignment = Alignment.Center
-        ) {
-            CircularProgressIndicator()
         }
     }
 }
 
 @Composable
 fun TopBar(title: String, onClick: () -> Unit) {
-    val gradientTheme = LocalGradientTheme.current
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .background(gradientTheme.primary)
+            .background(MaterialTheme.colorScheme.primaryContainer)
             .height(56.dp)
     ) {
         Icon(
             imageVector = Icons.Filled.ArrowBack,
-            contentDescription = "Back",
-            tint = Color.White,
+            contentDescription = "Back Button",
+            tint = MaterialTheme.colorScheme.onPrimaryContainer,
             modifier = Modifier
                 .align(Alignment.CenterStart)
                 .padding(start = 16.dp)
@@ -358,7 +264,7 @@ fun TopBar(title: String, onClick: () -> Unit) {
 
         Text(
             text = title,
-            color = Color.White,
+            color = MaterialTheme.colorScheme.onPrimaryContainer,
             style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
             modifier = Modifier.align(Alignment.Center)
         )
@@ -376,40 +282,29 @@ fun ParkingInfoSection(
             .fillMaxWidth()
             .padding(top = 12.dp)
             .clip(RoundedCornerShape(16.dp))
-            .background(MaterialTheme.colorScheme.surface)
+            .background(MaterialTheme.colorScheme.background)
             .padding(16.dp)
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Icon(
                 imageVector = Icons.Default.LocalParking,
-                contentDescription = null,
+                contentDescription = "Parking Icon",
                 modifier = Modifier
                     .size(80.dp)
                     .padding(end = 12.dp)
-                    .background(
-                        MaterialTheme.colorScheme.primaryContainer,
-                        RoundedCornerShape(12.dp)
-                    )
+                    .background(MaterialTheme.colorScheme.primaryContainer, RoundedCornerShape(12.dp))
                     .padding(16.dp),
                 tint = MaterialTheme.colorScheme.primary
             )
 
             Column {
-                Text("Park information", fontWeight = FontWeight.Medium, fontSize = 14.sp)
+                Text("Bãi đậu xe", fontWeight = FontWeight.Medium, fontSize = 14.sp)
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(parkName, fontWeight = FontWeight.Bold, fontSize = 18.sp)
                 Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    parkAddress,
-                    fontSize = 13.sp,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
-                )
+                Text(parkAddress, fontSize = 13.sp, color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f))
                 Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    "Type vehicle: $parkTypeVehicle",
-                    fontSize = 13.sp,
-                    color = MaterialTheme.colorScheme.primary
-                )
+                Text("Loại xe: $parkTypeVehicle", fontSize = 13.sp, color = MaterialTheme.colorScheme.primary)
             }
         }
     }
@@ -429,8 +324,10 @@ fun SlotInfoSection(
             containerColor = MaterialTheme.colorScheme.secondaryContainer
         )
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Text("Parking position", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+        Column(
+            modifier = Modifier.padding(16.dp)
+        ) {
+            Text("Vị trí đậu xe", fontWeight = FontWeight.Bold, fontSize = 16.sp)
             Spacer(modifier = Modifier.height(12.dp))
 
             Row(
@@ -438,20 +335,12 @@ fun SlotInfoSection(
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Column {
-                    Text(
-                        "Number of slot:",
-                        fontSize = 14.sp,
-                        color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.7f)
-                    )
+                    Text("Số vị trí:", fontSize = 14.sp, color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.7f))
                     Text(slotName, fontWeight = FontWeight.Bold, fontSize = 20.sp)
                 }
 
                 Column(horizontalAlignment = Alignment.End) {
-                    Text(
-                        "Position:",
-                        fontSize = 14.sp,
-                        color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.7f)
-                    )
+                    Text("Tọa độ:", fontSize = 14.sp, color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.7f))
                     Text("($slotPosX, $slotPosY)", fontWeight = FontWeight.Medium, fontSize = 16.sp)
                 }
             }
@@ -464,7 +353,6 @@ fun UserInfoSection(
     userName: String,
     userPhone: String,
     vehicleNumber: String,
-    plateError: String?,
     onVehicleNumberChange: (String) -> Unit
 ) {
     var showDetailDialog by remember { mutableStateOf(false) }
@@ -491,8 +379,8 @@ fun UserInfoSection(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "More detail",
-                    color = MaterialTheme.colorScheme.onSecondaryContainer,
+                    text = "Xem chi tiết",
+                    color = MaterialTheme.colorScheme.onBackground,
                     fontSize = 13.sp,
                     modifier = Modifier.clickable { showDetailDialog = true }
                 )
@@ -510,33 +398,23 @@ fun UserInfoSection(
                 modifier = Modifier
                     .fillMaxWidth()
                     .shadow(4.dp, RoundedCornerShape(12.dp))
-                    .background(MaterialTheme.colorScheme.surface, RoundedCornerShape(12.dp))
+                    .background(MaterialTheme.colorScheme.background, RoundedCornerShape(12.dp))
                     .padding(16.dp)
             ) {
-                Text("User's information:", fontWeight = FontWeight.Bold)
+                Text("Thông tin người đặt:", fontWeight = FontWeight.Bold)
                 Spacer(modifier = Modifier.height(8.dp))
-                InfoRow("Full name:", userName)
-                InfoRow("Phone number:", userPhone)
+                InfoRow("Họ và tên:", userName)
+                InfoRow("Điện thoại:", userPhone)
 
                 Spacer(modifier = Modifier.height(12.dp))
-                Text("Number plate:", fontWeight = FontWeight.Medium, fontSize = 14.sp)
+                Text("Biển số xe:", fontWeight = FontWeight.Medium, fontSize = 14.sp)
                 Spacer(modifier = Modifier.height(4.dp))
                 OutlinedTextField(
                     value = vehicleNumber,
                     onValueChange = onVehicleNumberChange,
-                    placeholder = { Text("Exp: 30A-123.45 or 30A-12345") },
+                    placeholder = { Text("Nhập biển số xe") },
                     modifier = Modifier.fillMaxWidth(),
-                    singleLine = true,
-                    isError = plateError != null,
-                    supportingText = {
-                        if (plateError != null) {
-                            Text(
-                                text = plateError,
-                                color = MaterialTheme.colorScheme.error,
-                                fontSize = 12.sp
-                            )
-                        }
-                    }
+                    singleLine = true
                 )
             }
         }
@@ -545,17 +423,17 @@ fun UserInfoSection(
     if (showDetailDialog) {
         AlertDialog(
             onDismissRequest = { showDetailDialog = false },
-            title = { Text("Detail information") },
+            title = { Text("Chi tiết thông tin") },
             text = {
                 Column {
-                    InfoRow("Full name:", userName)
-                    InfoRow("Phone:", userPhone)
-                    InfoRow("Number plate:", vehicleNumber.ifEmpty { "Not assign" })
+                    InfoRow("Họ và tên:", userName)
+                    InfoRow("Điện thoại:", userPhone)
+                    InfoRow("Biển số xe:", vehicleNumber.ifEmpty { "Chưa nhập" })
                 }
             },
             confirmButton = {
                 TextButton(onClick = { showDetailDialog = false }) {
-                    Text("Close")
+                    Text("Đóng")
                 }
             }
         )
@@ -569,20 +447,26 @@ fun NoteSection(notes: String, onNoteChange: (String) -> Unit) {
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(16.dp))
-            .background(MaterialTheme.colorScheme.surface)
-            .padding(16.dp)
+            .background(MaterialTheme.colorScheme.background)
+            .padding(horizontal = 16.dp, vertical = 12.dp)
     ) {
-        Text("Note:", fontWeight = FontWeight.Bold)
+        Text(text = "Ghi chú:", fontWeight = FontWeight.Bold)
         Spacer(modifier = Modifier.height(8.dp))
 
         OutlinedTextField(
             value = notes,
-            onValueChange = onNoteChange,
-            placeholder = { Text("Note (if necessary):") },
+            onValueChange = { onNoteChange(it) },
+            placeholder = { Text("Nhập ghi chú (nếu có)...") },
             modifier = Modifier
                 .fillMaxWidth()
-                .height(90.dp),
-            maxLines = 3
+                .height(90.dp)
+                .clip(RoundedCornerShape(12.dp))
+                .background(MaterialTheme.colorScheme.secondaryContainer),
+            colors = TextFieldDefaults.outlinedTextFieldColors(
+                containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                focusedBorderColor = MaterialTheme.colorScheme.secondaryContainer,
+                unfocusedBorderColor = MaterialTheme.colorScheme.secondaryContainer
+            )
         )
     }
 }
@@ -592,12 +476,12 @@ fun FeeSummarySection(
     parkPrice: Double,
     parkTypeVehicle: String
 ) {
-    CardSection(title = "Price") {
-        InfoRow("Per hour", "${String.format("%,.0f", parkPrice)}đ")
-        InfoRow("Type of vehicle", parkTypeVehicle)
-        HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+    CardSection(title = "Chi phí đậu xe") {
+        InfoRow("Giá/giờ", "${String.format("%,.0f", parkPrice)}đ")
+        InfoRow("Loại xe", parkTypeVehicle)
+        Divider(modifier = Modifier.padding(vertical = 8.dp))
         InfoRow(
-            "Sum of money",
+            "Tổng tiền",
             "${String.format("%,.0f", parkPrice)}đ",
             valueColor = MaterialTheme.colorScheme.primary,
             fontWeight = FontWeight.Bold
@@ -607,6 +491,7 @@ fun FeeSummarySection(
 
 @Composable
 fun BookParkingButton(
+    vehicleNumber: String,
     isLoading: Boolean,
     onBookClick: () -> Unit
 ) {
@@ -616,18 +501,22 @@ fun BookParkingButton(
             .fillMaxWidth()
             .height(50.dp),
         shape = RoundedCornerShape(12.dp),
+        colors = ButtonDefaults.buttonColors(
+            containerColor = MaterialTheme.colorScheme.primaryContainer,
+            contentColor = MaterialTheme.colorScheme.onBackground
+        ),
         enabled = !isLoading
     ) {
         if (isLoading) {
             CircularProgressIndicator(
                 modifier = Modifier.size(24.dp),
-                color = Color.White
+                color = MaterialTheme.colorScheme.onBackground
             )
         } else {
             Text(
-                text = "Book now",
+                text = "Đặt chỗ ngay",
                 fontSize = 16.sp,
-                fontWeight = FontWeight.Bold
+                fontWeight = FontWeight.Medium
             )
         }
     }
@@ -640,7 +529,7 @@ fun CardSection(title: String, content: @Composable ColumnScope.() -> Unit) {
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(16.dp))
-            .background(MaterialTheme.colorScheme.surface)
+            .background(MaterialTheme.colorScheme.background)
             .padding(16.dp)
     ) {
         Text(title, fontWeight = FontWeight.Bold)
@@ -653,14 +542,14 @@ fun CardSection(title: String, content: @Composable ColumnScope.() -> Unit) {
 fun InfoRow(
     label: String,
     value: String,
-    valueColor: Color = MaterialTheme.colorScheme.onSurface,
+    valueColor: Color = MaterialTheme.colorScheme.onBackground,
     fontWeight: FontWeight = FontWeight.Normal
 ) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 4.dp),
-        verticalAlignment = Alignment.Top
+        verticalAlignment = Alignment.Top,
     ) {
         Text(
             text = label,
