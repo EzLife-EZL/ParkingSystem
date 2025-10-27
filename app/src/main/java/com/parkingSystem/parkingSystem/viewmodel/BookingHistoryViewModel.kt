@@ -34,10 +34,10 @@ class BookingHistoryViewModel(
             if (res.isSuccessful) {
                 _bookings.value = res.body().orEmpty()
             } else {
-                _error.value = "Không tải được lịch sử (${res.code()})"
+                _error.value = "no (${res.code()})"
             }
         } catch (e: Exception) {
-            _error.value = e.message ?: "Lỗi tải lịch sử đặt chỗ"
+            _error.value = e.message ?: "err"
         } finally {
             _isLoading.value = false
         }
@@ -50,7 +50,7 @@ class BookingHistoryViewModel(
 
             val res = RetrofitInstance.userApi.cancelReservation(bookingId)
             if (!res.isSuccessful) {
-                _error.value = "Huỷ thất bại (${res.code()})"
+                _error.value = "cancel err (${res.code()})"
                 return@launch
             }
 
@@ -60,7 +60,7 @@ class BookingHistoryViewModel(
             _justCancelled.value = true
 
         } catch (e: Exception) {
-            _error.value = e.message ?: "Huỷ thất bại"
+            _error.value = e.message ?: "cancel err"
         } finally {
             _isLoading.value = false
         }

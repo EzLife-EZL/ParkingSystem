@@ -52,6 +52,7 @@ import com.parkingSystem.parkingSystem.user.home.parking.ParkingSlot
 import com.parkingSystem.parkingSystem.user.notification.NotificationPage
 import com.parkingSystem.parkingSystem.user.personal.ActivityManagerScreen
 import com.parkingSystem.parkingSystem.user.personal.EditUserProfile
+import com.parkingSystem.parkingSystem.user.personal.MyReportsScreen
 import com.parkingSystem.parkingSystem.user.personal.Setting
 import com.parkingSystem.parkingSystem.viewmodel.ParkingViewModel
 import com.parkingSystem.parkingSystem.viewmodel.UserViewModel
@@ -304,10 +305,12 @@ class HomeActivity : BaseActivity() {
                     navHostController
                 )
             }
-
-
-
-
+            composable("my-report") {
+                MyReportsScreen(
+                    sharedPreferences = sharedPreferences,
+                    navController = navHostController
+                )
+            }
         }
 
     }

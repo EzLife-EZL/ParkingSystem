@@ -48,6 +48,19 @@ class SignIn : BaseActivity() {
         private const val RC_SIGN_IN = 9001
     }
 
+    private fun saveLoginSession(token: String, userId: String?) {
+        val sp = getSharedPreferences("user_prefs", MODE_PRIVATE)
+        sp.edit()
+            .putString("access_token", token)
+            .apply()
+
+        if (!userId.isNullOrEmpty()) {
+            sp.edit()
+                .putString("user_id", userId)
+                .apply()
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -170,11 +183,22 @@ class SignIn : BaseActivity() {
                         val loginResponse = response.body()
                         val token = loginResponse?.accessToken
                         if (!token.isNullOrEmpty()) {
-                            saveToken(token)
-                            Toast.makeText(this@SignIn, "Login success!", Toast.LENGTH_SHORT).show()
+
+                            val userIdFromResponse = loginResponse?.firebaseUid
+
                             val jwt = JWT(token)
                             val role = jwt.getClaim("role").asString()
-                            println ("Role la "+ role)
+                            val userIdFromJwt =
+                                jwt.getClaim("userId").asString()
+                                    ?: jwt.getClaim("uid").asString()
+                                    ?: jwt.getClaim("sub").asString()
+
+                            val finalUserId = userIdFromResponse ?: userIdFromJwt ?: ""
+
+                            saveLoginSession(token, finalUserId)
+
+                            Toast.makeText(this@SignIn, "Login success!", Toast.LENGTH_SHORT).show()
+
                             val intent = when (role) {
                                 "Admin" -> Intent(this@SignIn, AdminRoot::class.java)
                                 "User" -> Intent(this@SignIn, HomeActivity::class.java)
@@ -185,11 +209,13 @@ class SignIn : BaseActivity() {
                                         "Vai trò không hợp lệ: $role",
                                         Toast.LENGTH_SHORT
                                     ).show()
-                                    return@withContext                                }
+                                    return@withContext
+                                }
                             }
                             startActivity(intent)
                             finish()
                         }
+
                     } else {
                         val errorBody = response.errorBody()?.string()
                         Toast.makeText(this@SignIn, "Sign in fail: $errorBody", Toast.LENGTH_SHORT).show()

@@ -11,6 +11,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Cancel
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.QrCode
 import androidx.compose.material.icons.filled.Send
@@ -159,7 +160,6 @@ fun BookingDetailScreen(
                                 modifier = Modifier.padding(16.dp),
                                 verticalArrangement = Arrangement.spacedBy(12.dp)
                             ) {
-
                                 // header line
                                 Row(
                                     modifier = Modifier.fillMaxWidth(),
@@ -195,8 +195,8 @@ fun BookingDetailScreen(
 
                                 Divider()
 
-                                InfoRow(label = "Payment method", value = b.paymentMethod?: "--")
-                                InfoRow(label = "Payment status", value = b.statusPayment?: "--")
+                                InfoRow(label = "Payment method", value = b.paymentMethod ?: "--")
+                                InfoRow(label = "Payment status", value = b.statusPayment ?: "--")
                                 InfoRow(label = "Created at", value = createdText)
 
                                 if (b.price != null && b.type_vehicle != null) {
@@ -274,177 +274,310 @@ fun BookingDetailScreen(
                                     }
                                 }
                             }
-                            Button(
-                                modifier = Modifier.fillMaxWidth(),
-                                shape = RoundedCornerShape(12.dp),
-                                colors = ButtonDefaults.buttonColors(
-                                    containerColor = Color(0xFFFFA000),
-                                    contentColor = Color.Black
-                                ),
-                                onClick = {
-                                    showReportDialog = true
-                                    reportError = null
-                                    reportSuccess = false
-                                }
-                            ) {
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.Center
+                            if (b.status?.lowercase() == "pending" || b.status?.lowercase() == "done") {
+                                Button(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    shape = RoundedCornerShape(12.dp),
+                                    colors = ButtonDefaults.buttonColors(
+                                        containerColor = Color(0xFFFFA000),
+                                        contentColor = Color.Black
+                                    ),
+                                    onClick = {
+                                        showReportDialog = true
+                                        reportError = null
+                                        reportSuccess = false
+                                    }
                                 ) {
-                                    Icon(
-                                        imageVector = Icons.Default.Warning,
-                                        contentDescription = "Report an issue",
-                                        modifier = Modifier.size(20.dp)
-                                    )
-                                    Spacer(modifier = Modifier.width(8.dp))
-                                    Text(
-                                        "Report an issue",
-                                        fontWeight = FontWeight.Bold
-                                    )
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.Center
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Default.Warning,
+                                            contentDescription = "Report an issue",
+                                            modifier = Modifier.size(20.dp)
+                                        )
+                                        Text(
+                                            "Report an issue",
+                                            fontWeight = FontWeight.Bold
+                                        )
+                                    }
                                 }
-                            }
 
-                            if (showReportDialog) {
-                                AlertDialog(
-                                    onDismissRequest = {
-                                        if (!isSendingReport) {
-                                            showReportDialog = false
-                                        }
-                                    },
-                                    confirmButton = {
-                                        Button(
-                                            enabled = !isSendingReport && reportText.isNotBlank(),
-                                            onClick = {
-                                                val bookingIdReal = b.id ?: return@Button
-                                                isSendingReport = true
-                                                reportError = null
-                                                reportSuccess = false
-
-                                                // vm.reportIssue(
-                                                //     bookingId = bookingIdReal,
-                                                //     content = reportText,
-                                                //     onSuccess = {
-                                                //         isSendingReport = false
-                                                //         reportSuccess = true
-                                                //         reportText = "" // clear input
-                                                //     },
-                                                //     onError = { msg ->
-                                                //         isSendingReport = false
-                                                //         reportError = msg ?: "Failed to send report"
-                                                //     }
-                                                // )
+                                if (showReportDialog) {
+                                    AlertDialog(
+                                        onDismissRequest = {
+                                            if (!isSendingReport) {
+                                                showReportDialog = false
                                             }
-                                        ) {
-                                            if (isSendingReport) {
-                                                CircularProgressIndicator(
-                                                    strokeWidth = 2.dp,
-                                                    modifier = Modifier.size(18.dp),
-                                                    color = MaterialTheme.colorScheme.onPrimary
+                                        },
+                                        confirmButton = {
+                                            if (showReportDialog) {
+                                                AlertDialog(
+                                                    onDismissRequest = {
+                                                        if (!isSendingReport) {
+                                                            showReportDialog = false
+                                                        }
+                                                    },
+                                                    confirmButton = {
+                                                        Button(
+                                                            enabled = !isSendingReport && reportText.isNotBlank() && !reportSuccess,
+                                                            onClick = {
+                                                                val bookingIdReal = b.id ?: return@Button
+                                                                val slotIdReal = b.slotId ?: ""
+                                                                val userIdReal = b.userId ?: ""
+                                                                if (userIdReal.isBlank()) {
+                                                                    reportError = "Missing user info"
+                                                                    return@Button
+                                                                }
+
+                                                                val titleReal = "Issue at slot $slotIdReal"
+
+                                                                isSendingReport = true
+                                                                reportError = null
+                                                                reportSuccess = false
+
+                                                                vm.reportIssue(
+                                                                    bookingId = bookingIdReal,
+                                                                    slotId = slotIdReal,
+                                                                    userId = userIdReal,
+                                                                    title = titleReal,
+                                                                    content = reportText,
+                                                                    onSuccess = {
+                                                                        isSendingReport = false
+                                                                        reportSuccess = true
+                                                                        reportText = ""
+                                                                        // ❌ KHÔNG đóng dialog ở đây nữa
+                                                                        // showReportDialog = false
+                                                                    },
+                                                                    onError = { msg ->
+                                                                        isSendingReport = false
+                                                                        reportError = msg ?: "Failed to send report"
+                                                                    }
+                                                                )
+                                                            }
+                                                        ) {
+                                                            if (isSendingReport) {
+                                                                CircularProgressIndicator(
+                                                                    strokeWidth = 2.dp,
+                                                                    modifier = Modifier.size(18.dp),
+                                                                    color = MaterialTheme.colorScheme.onPrimary
+                                                                )
+                                                            } else if (reportSuccess) {
+                                                                Row(
+                                                                    verticalAlignment = Alignment.CenterVertically,
+                                                                    horizontalArrangement = Arrangement.Center
+                                                                ) {
+                                                                    Icon(
+                                                                        imageVector = Icons.Default.Check,
+                                                                        contentDescription = "Sent",
+                                                                        modifier = Modifier.size(18.dp),
+                                                                        tint = Color(0xFF2E7D32)
+                                                                    )
+                                                                    Spacer(modifier = Modifier.width(6.dp))
+                                                                    Text("Sent")
+                                                                }
+                                                            } else {
+                                                                Row(
+                                                                    verticalAlignment = Alignment.CenterVertically,
+                                                                    horizontalArrangement = Arrangement.Center
+                                                                ) {
+                                                                    Icon(
+                                                                        imageVector = Icons.Default.Send,
+                                                                        contentDescription = "Send report",
+                                                                        modifier = Modifier.size(18.dp)
+                                                                    )
+                                                                    Spacer(modifier = Modifier.width(6.dp))
+                                                                    Text("Send")
+                                                                }
+                                                            }
+                                                        }
+                                                    },
+                                                    dismissButton = {
+                                                        OutlinedButton(
+                                                            enabled = !isSendingReport,
+                                                            onClick = { showReportDialog = false }
+                                                        ) {
+                                                            Row(
+                                                                verticalAlignment = Alignment.CenterVertically,
+                                                                horizontalArrangement = Arrangement.Center
+                                                            ) {
+                                                                Icon(
+                                                                    imageVector = Icons.Default.Close,
+                                                                    contentDescription = "Close dialog",
+                                                                    modifier = Modifier.size(18.dp)
+                                                                )
+                                                                Spacer(modifier = Modifier.width(6.dp))
+                                                                Text(
+                                                                    text = if (reportSuccess) "Done" else "Close"
+                                                                )
+                                                            }
+                                                        }
+                                                    },
+                                                    title = {
+                                                        Row(
+                                                            modifier = Modifier.fillMaxWidth(),
+                                                            horizontalArrangement = Arrangement.Center,
+                                                            verticalAlignment = Alignment.CenterVertically
+                                                        ) {
+                                                            Icon(
+                                                                imageVector = Icons.Default.Warning,
+                                                                contentDescription = "Warning",
+                                                                tint = if (reportSuccess) Color(0xFF2E7D32) else Color.Red,
+                                                                modifier = Modifier.size(24.dp)
+                                                            )
+
+                                                            Spacer(modifier = Modifier.width(8.dp))
+
+                                                            Text(
+                                                                text = if (reportSuccess) "Report sent" else "Report an issue",
+                                                                style = MaterialTheme.typography.titleMedium.copy(
+                                                                    fontWeight = FontWeight.Bold,
+                                                                    fontSize = 20.sp,
+                                                                    color = if (reportSuccess) Color(0xFF2E7D32) else Color.Red,
+                                                                    textAlign = TextAlign.Center
+                                                                )
+                                                            )
+                                                        }
+                                                    },
+                                                    text = {
+                                                        Column(
+                                                            verticalArrangement = Arrangement.spacedBy(12.dp)
+                                                        ) {
+                                                            if (!reportSuccess) {
+                                                                Text(
+                                                                    text = "Tell us what went wrong with this booking.",
+                                                                    style = MaterialTheme.typography.bodyMedium
+                                                                )
+                                                            }
+
+                                                            OutlinedTextField(
+                                                                value = reportText,
+                                                                onValueChange = { reportText = it },
+                                                                modifier = Modifier
+                                                                    .fillMaxWidth()
+                                                                    .heightIn(min = 80.dp),
+                                                                placeholder = {
+                                                                    Text("Enter a description of your problem")
+                                                                },
+                                                                shape = RoundedCornerShape(12.dp),
+                                                                enabled = !isSendingReport && !reportSuccess
+                                                            )
+
+                                                            if (reportError != null) {
+                                                                Text(
+                                                                    text = reportError!!,
+                                                                    color = MaterialTheme.colorScheme.error,
+                                                                    style = MaterialTheme.typography.bodySmall
+                                                                )
+                                                            }
+
+                                                            if (reportSuccess) {
+                                                                Text(
+                                                                    text = "Your report has been sent. Thank you.",
+                                                                    color = Color(0xFF2E7D32),
+                                                                    style = MaterialTheme.typography.bodySmall,
+                                                                    fontWeight = FontWeight.SemiBold
+                                                                )
+                                                            }
+                                                        }
+                                                    },
+                                                    shape = RoundedCornerShape(20.dp),
+                                                    containerColor = MaterialTheme.colorScheme.surface,
+                                                    tonalElevation = 4.dp
                                                 )
-                                            } else {
+                                            }
+
+                                        },
+                                        dismissButton = {
+                                            OutlinedButton(
+                                                enabled = !isSendingReport,
+                                                onClick = { showReportDialog = false }
+                                            ) {
                                                 Row(
                                                     verticalAlignment = Alignment.CenterVertically,
                                                     horizontalArrangement = Arrangement.Center
                                                 ) {
                                                     Icon(
-                                                        imageVector = Icons.Default.Send,
-                                                        contentDescription = "Send report",
+                                                        imageVector = Icons.Default.Close,
+                                                        contentDescription = "Close dialog",
                                                         modifier = Modifier.size(18.dp)
                                                     )
                                                     Spacer(modifier = Modifier.width(6.dp))
-                                                    Text("Send")
+                                                    Text("Close")
                                                 }
                                             }
-                                        }
-                                    },
-                                    dismissButton = {
-                                        OutlinedButton(
-                                            enabled = !isSendingReport,
-                                            onClick = { showReportDialog = false }
-                                        ) {
+                                        },
+                                        title = {
                                             Row(
-                                                verticalAlignment = Alignment.CenterVertically,
-                                                horizontalArrangement = Arrangement.Center
+                                                modifier = Modifier.fillMaxWidth(),
+                                                horizontalArrangement = Arrangement.Center,
+                                                verticalAlignment = Alignment.CenterVertically
                                             ) {
                                                 Icon(
-                                                    imageVector = Icons.Default.Close,
-                                                    contentDescription = "Close dialog",
-                                                    modifier = Modifier.size(18.dp)
+                                                    imageVector = Icons.Default.Warning,
+                                                    contentDescription = "Warning",
+                                                    tint = Color.Red,
+                                                    modifier = Modifier.size(24.dp)
                                                 )
-                                                Spacer(modifier = Modifier.width(6.dp))
-                                                Text("Close")
-                                            }
-                                        }
-                                    },
-                                    title = {
-                                        Row(
-                                            modifier = Modifier.fillMaxWidth(),
-                                            horizontalArrangement = Arrangement.Center,
-                                            verticalAlignment = Alignment.CenterVertically
-                                        ) {
-                                            Icon(
-                                                imageVector = Icons.Default.Warning,
-                                                contentDescription = "Warning",
-                                                tint = Color.Red,
-                                                modifier = Modifier.size(24.dp)
-                                            )
 
-                                            Spacer(modifier = Modifier.width(8.dp))
+                                                Spacer(modifier = Modifier.width(8.dp))
 
-                                            Text(
-                                                text = "Report an issue",
-                                                style = MaterialTheme.typography.titleMedium.copy(
-                                                    fontWeight = FontWeight.Bold,
-                                                    fontSize = 25.sp,
-                                                    color = Color.Red,
-                                                    textAlign = TextAlign.Center
-                                                )
-                                            )
-                                        }
-                                    },
-                                    text = {
-                                        Column(
-                                            verticalArrangement = Arrangement.spacedBy(12.dp)
-                                        ) {
-                                            Text(
-                                                text = "Tell us what went wrong with this booking.",
-                                                style = MaterialTheme.typography.bodyMedium
-                                            )
-
-                                            OutlinedTextField(
-                                                value = reportText,
-                                                onValueChange = { reportText = it },
-                                                modifier = Modifier
-                                                    .fillMaxWidth()
-                                                    .heightIn(min = 80.dp),
-                                                placeholder = {
-                                                    Text("Enter a description of your problem")
-                                                },
-                                                shape = RoundedCornerShape(12.dp)
-                                            )
-
-                                            if (reportError != null) {
                                                 Text(
-                                                    text = reportError!!,
-                                                    color = MaterialTheme.colorScheme.error,
-                                                    style = MaterialTheme.typography.bodySmall
+                                                    text = "Report an issue",
+                                                    style = MaterialTheme.typography.titleMedium.copy(
+                                                        fontWeight = FontWeight.Bold,
+                                                        fontSize = 25.sp,
+                                                        color = Color.Red,
+                                                        textAlign = TextAlign.Center
+                                                    )
                                                 )
                                             }
-
-                                            if (reportSuccess) {
+                                        },
+                                        text = {
+                                            Column(
+                                                verticalArrangement = Arrangement.spacedBy(12.dp)
+                                            ) {
                                                 Text(
-                                                    text = "Your report has been sent. Thank you.",
-                                                    color = Color(0xFF2E7D32),
-                                                    style = MaterialTheme.typography.bodySmall,
-                                                    fontWeight = FontWeight.SemiBold
+                                                    text = "Tell us what went wrong with this booking.",
+                                                    style = MaterialTheme.typography.bodyMedium
                                                 )
+
+                                                OutlinedTextField(
+                                                    value = reportText,
+                                                    onValueChange = { reportText = it },
+                                                    modifier = Modifier
+                                                        .fillMaxWidth()
+                                                        .heightIn(min = 80.dp),
+                                                    placeholder = {
+                                                        Text("Enter a description of your problem")
+                                                    },
+                                                    shape = RoundedCornerShape(12.dp)
+                                                )
+
+                                                if (reportError != null) {
+                                                    Text(
+                                                        text = reportError!!,
+                                                        color = MaterialTheme.colorScheme.error,
+                                                        style = MaterialTheme.typography.bodySmall
+                                                    )
+                                                }
+
+                                                if (reportSuccess) {
+                                                    Text(
+                                                        text = "Your report has been sent. Thank you.",
+                                                        color = Color(0xFF2E7D32),
+                                                        style = MaterialTheme.typography.bodySmall,
+                                                        fontWeight = FontWeight.SemiBold
+                                                    )
+                                                }
                                             }
-                                        }
-                                    },
-                                    shape = RoundedCornerShape(20.dp),
-                                    containerColor = MaterialTheme.colorScheme.surface,
-                                    tonalElevation = 4.dp
-                                )
+                                        },
+                                        shape = RoundedCornerShape(20.dp),
+                                        containerColor = MaterialTheme.colorScheme.surface,
+                                        tonalElevation = 4.dp
+                                    )
+                                }
                             }
                             OutlinedButton(
                                 modifier = Modifier.fillMaxWidth(),
@@ -460,7 +593,6 @@ fun BookingDetailScreen(
                                         contentDescription = "Back",
                                         modifier = Modifier.size(20.dp)
                                     )
-                                    Spacer(modifier = Modifier.width(8.dp))
                                     Text("Back")
                                 }
                             }
