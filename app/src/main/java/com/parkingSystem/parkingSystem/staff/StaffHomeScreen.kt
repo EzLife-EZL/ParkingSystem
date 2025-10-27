@@ -134,15 +134,7 @@ fun StaffHomeScreen(
                 )
             }
 
-            item {
-                QuickActionButton(
-                    text = "Create new booking",
-                    icon = Icons.Default.DirectionsCar,
-                    onClick = {
-                        navController.navigate("parking_management")
-                    }
-                )
-            }
+
 
             item {
                 QuickActionButton(
@@ -154,15 +146,7 @@ fun StaffHomeScreen(
                 )
             }
 
-            item {
-                QuickActionButton(
-                    text = "Scan QR Code",
-                    icon = Icons.Default.QrCodeScanner,
-                    onClick = {
-                        navController.navigate("qr_scanner")
-                    }
-                )
-            }
+
         }
 
         // Loading indicator

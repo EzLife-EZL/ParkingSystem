@@ -79,18 +79,10 @@ fun FootBar(currentRoute: String?,navHostController: NavHostController) {
         ) {
             BoxItem(nameRoute = "Main", icon = "trangchu", nameDirection = "home",  navHostController,currentRoute)
             BoxItem(nameRoute = "History", icon = "history","history", navHostController,currentRoute)
-            Spacer(modifier = Modifier.width(50.dp)) // Space for the floating button
             BoxItem(nameRoute = "Notification", icon = "thongbao","notification", navHostController,currentRoute)
             BoxItem(nameRoute = "Setting", icon = "setting","setting", navHostController,currentRoute)
         }
 
-        // Floating button in the center
-        CircleButton(
-            onClick = {navHostController.navigate("qr-scanner")},
-            modifier = Modifier
-                .align(Alignment.TopCenter)
-                .offset(y = -30.dp), // Elevate the button
-        )
     }
 }
 

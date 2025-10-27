@@ -30,7 +30,7 @@ class UserViewModel(private val sharedPreferences: SharedPreferences) : ViewMode
     val targetUser: StateFlow<User?> get() = _targetUser
 
     private val _user = MutableStateFlow<User?>(null)
-    val user: StateFlow<User?> get() = _user
+    val user: StateFlow<User?> = _user
 
     private val _users = MutableStateFlow<List<User>>(emptyList())
     val users: StateFlow<List<User>> get() = _users

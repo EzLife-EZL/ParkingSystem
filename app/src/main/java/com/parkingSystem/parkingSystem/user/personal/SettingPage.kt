@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
 import android.widget.Toast
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -32,6 +33,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -63,12 +65,20 @@ fun Setting(
     ) {
         SectionSetting("Theme mode", darkTheme, onToggleTheme)
 
-        SectionSetting(
-            "Modify personal information",
-            iconVector = Icons.Default.ModeEdit,
-            onPress = {
-                navHostController.navigate("edit-user")
-            })
+        Box() {
+            SectionSetting(
+                "Modify personal information",
+                iconVector = Icons.Default.ModeEdit,
+                onPress = {
+                    navHostController.navigate("edit-user")
+                }
+            )
+            Image(
+                painter= painterResource(id = R.drawable.fixingjpg),
+                contentDescription = "Person",
+                modifier = Modifier.align(Alignment.Center).size(30.dp)
+            )
+        }
         SectionSetting(
             nameField = "Log out",
             iconVector = Icons.Default.Logout,
