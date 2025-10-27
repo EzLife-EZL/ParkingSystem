@@ -135,7 +135,7 @@ data class SlotData(
 
 data class SlotDto(
     val slotName: String,
-    @SerializedName("pos_X") val pos_X: String,
-    @SerializedName("pos_Y") val pos_Y: String,
+    @SerializedName("pos_X") val pos_X: Int,
+    @SerializedName("pos_Y") val pos_Y: Int,
     val isBooked: Boolean
 )

@@ -27,8 +27,6 @@ import kotlinx.coroutines.withContext
 class ParkingViewModel(private val sharedPreferences: SharedPreferences) : ViewModel() {
 
     lateinit var api: UserApi
-
-    // ParkingViewModel.kt
     suspend fun bookSlot(
         parkId: String,
         slotId: String,
@@ -95,7 +93,6 @@ class ParkingViewModel(private val sharedPreferences: SharedPreferences) : ViewM
     private val _createParkingLotMessage = MutableStateFlow<String?>(null)
     val createParkingLotMessage: StateFlow<String?> = _createParkingLotMessage.asStateFlow()
 
-    // ===== API calls =====
 
     fun fetchAllParksAvailable() {
         viewModelScope.launch {
@@ -265,11 +262,12 @@ class ParkingViewModel(private val sharedPreferences: SharedPreferences) : ViewM
         source.map { s ->
             SlotDto(
                 slotName = s.slotName.trim(),
-                pos_X = s.pos_X.toString(),   // STRING theo DTO BE
-                pos_Y = s.pos_Y.toString(),   // STRING theo DTO BE
+                pos_X = s.pos_X,   // STRING theo DTO BE
+                pos_Y = s.pos_Y,   // STRING theo DTO BE
                 isBooked = s.isBooked
             )
-        }.filter { it.slotName.isNotBlank() && it.pos_X.isNotBlank() && it.pos_Y.isNotBlank() }
+        }.filter { it.slotName.isNotBlank() && it.pos_X >= 0
+            && it.pos_Y >= 0 }
 
     // Create / Update
 

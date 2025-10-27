@@ -6,8 +6,8 @@ data class BookingInfo(
     val parkId: String,
     val parkName: String = "", // Cần lấy từ parkId
     val slotName: String,
-    val pos_X: String,
-    val pos_Y: String,
+    val pos_X: Int,
+    val pos_Y: Int,
     val checkInTime: String?,
     val checkOutTime: String?,
     val status: String,
