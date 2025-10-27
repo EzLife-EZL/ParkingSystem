@@ -12,10 +12,10 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import com.auth0.android.jwt.JWT
+import com.parkingSystem.parkingSystem.api.UserService
+import com.parkingSystem.parkingSystem.api.UserService.FcmTokenRequest
 import com.parkingSystem.parkingSystem.requestmodel.EmailRequest
-import com.parkingSystem.parkingSystem.requestmodel.TokenRequest
 import com.parkingSystem.parkingSystem.requestmodel.UpdateUserInput
-import com.parkingSystem.parkingSystem.responsemodel.BookingInfo
 import com.parkingSystem.parkingSystem.user.home.startscreen.SignIn
 import com.parkingSystem.parkingSystem.responsemodel.OtpResponse
 import com.parkingSystem.parkingSystem.responsemodel.User
@@ -244,10 +244,10 @@ class UserViewModel(private val sharedPreferences: SharedPreferences) : ViewMode
         }
     }
 
-    fun sendFcmToken(userId: String, userModel: String, token: String) {
+    fun sendFcmToken(userId: String, token: String) {
         viewModelScope.launch {
             try {
-                val response = RetrofitInstance.userService.updateFcmToken(userId, TokenRequest(token, userModel))
+                val response = RetrofitInstance.userService.updateFcmToken(userId, FcmTokenRequest(token))
                 if (response.isSuccessful) {
                     Log.d("FCM", "Đã gửi fcmToken lên server")
                 } else {
