@@ -15,11 +15,7 @@ data class CreateNotificationResponse(
 )
 
 data class NotificationResponse(
-    @SerializedName("_id") val id: String,
-    @SerializedName("user") val user: String,
-    @SerializedName("type") val type: String,
-    @SerializedName("content") val content: String,
-    @SerializedName("navigatePath") val navigatePath: String,
-    @SerializedName("isRead") val isRead: Boolean,
+    @SerializedName("id") val id: String,
+    @SerializedName("message") val content: String,
     @SerializedName("createdAt") val createdAt: String,
 )

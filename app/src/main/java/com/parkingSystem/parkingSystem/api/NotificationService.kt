@@ -17,6 +17,11 @@ interface NotificationService {
         @Path("userId") userId: String
     ): Response<List<NotificationResponse>>
 
+    @GET("notification/get-by-staff-id/{staffId}")
+    suspend fun getNotificationByStaffId(
+        @Path("staffId") staffId: String
+    ): Response<List<NotificationResponse>>
+
     @POST("notification/create")
     suspend fun createNotification(
         @Body createNotificationRequest: CreateNotificationRequest
