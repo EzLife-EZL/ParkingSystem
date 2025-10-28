@@ -1,6 +1,7 @@
 package com.parkingSystem.parkingSystem.staff
 
 import android.content.Context
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -20,12 +21,14 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
+import androidx.navigation.NavHostController
+import com.parkingSystem.parkingSystem.responsemodel.NotificationResponse
 import com.parkingSystem.parkingSystem.viewmodel.NotificationViewModel
 import com.parkingSystem.parkingSystem.viewmodel.UserViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun StaffNotificationScreen(context: Context) {
+fun StaffNotificationScreen(context: Context, navHostController: NavHostController) {
     val sharedPreferences = context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
     val userViewModel: UserViewModel = viewModel(factory = viewModelFactory {
         initializer { UserViewModel(sharedPreferences) }
@@ -109,9 +112,12 @@ fun StaffNotificationScreen(context: Context) {
 
                 items(notifications) { notification ->
                     StaffNotificationItem(
-                        title = "Notification",
-                        message = notification.content ?: "",
-                        time = notification.createdAt ?: ""
+                        notification,
+                        onClick = {
+                            println("Click notification: ${notification.id}")
+                            notificationViewModel.updateReadStatus(notification.id)
+                            navHostController.navigate(notification.navPath)
+                        }
                     )
                 }
             }
@@ -121,93 +127,48 @@ fun StaffNotificationScreen(context: Context) {
 
 @Composable
 fun StaffNotificationItem(
-    title: String,
-    message: String,
-    time: String
+    notification: NotificationResponse,
+    onClick: () -> Unit = {}
 ) {
     Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = Color.White
-        ),
-        elevation = CardDefaults.cardElevation(
-            defaultElevation = 2.dp
-        )
+        modifier = Modifier
+            .clickable { onClick() }
+            .fillMaxWidth(),
+        colors =
+            if (notification.isRead) {
+                CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.secondaryContainer
+                )
+            }
+            else{
+                CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.background
+                )
+            },
+        elevation = CardDefaults.cardElevation(2.dp)
     ) {
-        Row(
+        Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            verticalAlignment = Alignment.Top
+                .padding(12.dp)
         ) {
-            // Icon container
-            Surface(
-                modifier = Modifier.size(48.dp),
-                shape = RoundedCornerShape(24.dp),
-                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
-            ) {
-                Box(
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Notifications,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(24.dp)
-                    )
-                }
-            }
-
-            Spacer(modifier = Modifier.width(16.dp))
-
-            // Content
-            Column(
-                modifier = Modifier.weight(1f)
-            ) {
-                Text(
-                    text = title,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 16.sp,
-                    color = Color(0xFF212121)
-                )
-
-                Spacer(modifier = Modifier.height(4.dp))
-
-                Text(
-                    text = message,
-                    fontSize = 14.sp,
-                    color = Color(0xFF616161),
-                    lineHeight = 20.sp
-                )
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                Row(
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Surface(
-                        shape = RoundedCornerShape(4.dp),
-                        color = Color(0xFFE3F2FD)
-                    ) {
-                        Text(
-                            text = "Staff",
-                            fontSize = 11.sp,
-                            fontWeight = FontWeight.Medium,
-                            color = Color(0xFF1976D2),
-                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
-                        )
-                    }
-
-                    Spacer(modifier = Modifier.width(8.dp))
-
-                    Text(
-                        text = time,
-                        fontSize = 12.sp,
-                        color = Color(0xFF9E9E9E)
-                    )
-                }
-            }
+            Text(
+                text = "Notification",
+                fontWeight = FontWeight.Bold,
+                fontSize = 16.sp,
+                color = Color(0xFF333333)
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = notification.content ?: "",
+                fontSize = 14.sp,
+                color = Color.DarkGray
+            )
+            Spacer(modifier = Modifier.height(6.dp))
+            Text(
+                text = notification.createdAt,
+                fontSize = 12.sp,
+                color = Color.Gray
+            )
         }
     }
 }

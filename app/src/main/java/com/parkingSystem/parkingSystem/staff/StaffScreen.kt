@@ -112,7 +112,7 @@ fun StaffMainScreen(
                 StaffHistoryScreen(staffViewModel)
             }
             composable("notification") {
-                StaffNotificationScreen(context)
+                StaffNotificationScreen(context, navController)
             }
             composable("setting") {
                 StaffSettingScreen(navController, sharedPreferences)
