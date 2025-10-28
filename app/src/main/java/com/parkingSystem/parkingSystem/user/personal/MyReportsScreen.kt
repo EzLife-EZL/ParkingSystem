@@ -83,7 +83,7 @@ fun MyReportsScreen(
                     )
 
                     Text(
-                        text = "My report",
+                        text = "My complaint",
                         fontWeight = FontWeight.Bold,
                         fontSize = 22.sp,
                         color = Color.White,

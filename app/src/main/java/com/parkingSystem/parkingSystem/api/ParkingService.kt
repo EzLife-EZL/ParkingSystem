@@ -76,4 +76,8 @@ interface ParkingService {
     suspend fun getRevenueVehicleType(): Response<List<RevenueVehicleType>>
 
     companion object
+    @GET("manager/total-revenue")
+    suspend fun getTotalRevenue(
+        @retrofit2.http.Query("period") period: String = "month"
+    ): Response<Double>
 }

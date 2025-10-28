@@ -75,11 +75,6 @@ fun Setting(
                     navHostController.navigate("edit-user")
                 }
             )
-            Image(
-                painter= painterResource(id = R.drawable.fixingjpg),
-                contentDescription = "Person",
-                modifier = Modifier.align(Alignment.Center).size(30.dp)
-            )
         }
         Box() {
             SectionSetting(
