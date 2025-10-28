@@ -17,7 +17,14 @@ import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.LocalOffer
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material3.*
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -28,104 +35,196 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.parkingSystem.parkingSystem.responsemodel.ComplaintData
+import com.parkingSystem.parkingSystem.responsemodel.ReportResponse
 import com.parkingSystem.parkingSystem.retrofit.RetrofitInstance
 import kotlinx.coroutines.launch
 
-@Preview(showBackground = true)
-@Composable
-fun PreviewReportListScreen() {
-    ReportManagerScreen()
-}
+data class ComplaintData(
+    val reportId: String,
+    val bookingId: String,
+    val userId: String,
+    val slotId: String,
+    val title: String,
+    val content: String,
+    val status: String,
+    val createdAt: String
+)
 
 @Composable
 fun ReportManagerScreen() {
-    val backgroundColor = Color(0xFFF4F5F7)
     val reportList = remember { mutableStateListOf<ComplaintData>() }
     val coroutineScope = rememberCoroutineScope()
     var selectedComplaint by remember { mutableStateOf<ComplaintData?>(null) }
     val navController = rememberNavController()
-
+    val context = LocalContext.current
     LaunchedEffect(Unit) {
         coroutineScope.launch {
             try {
-                val response = RetrofitInstance.reportService.getAllReports()
+                val response: List<ReportResponse> =
+                    RetrofitInstance.reportService.getAllReports()
+
+                android.util.Log.d(
+                    "ReportManagerScreen",
+                    "Fetched ${response.size} reports from API"
+                )
+
                 reportList.clear()
-                response.forEachIndexed { index, report ->
+
+                response.forEach { report ->
+                    android.util.Log.d("ReportManagerScreen", "report item: $report")
+
                     reportList.add(
                         ComplaintData(
-                            id = (index + 1).toString(),
-                            reportId = report._id,
-                            user = report.reporter?.name ?: "Không rõ",
-                            content = report.content ?: "Không có nội dung",
-                            targetType = report.type ?: "Không xác định",
+                            reportId = report._id ?: "",
+                            bookingId = report.bookingId ?: "",
+                            userId = report.userId ?: "",
+                            slotId = report.slotId ?: "",
+                            title = report.title ?: "(no title)",
+                            content = report.content ?: "(no content)",
                             status = report.status ?: "opened",
-                            createdDate = report.createdAt?.substring(0, 10) ?: "Không rõ",
-                            reportedId = report.reportedId ?: "Không rõ",
-                            postId = report.postId
+                            createdAt = report.createdAt ?: "--"
                         )
                     )
                 }
             } catch (e: Exception) {
-                e.printStackTrace()
+                android.util.Log.e("ReportManagerScreen", "Failed to load reports", e)
+                Toast.makeText(
+                    context,
+                    "Failed to load reports: ${e.message ?: "unknown"}",
+                    Toast.LENGTH_SHORT
+                ).show()
             }
         }
     }
+
     NavHost(navController = navController, startDestination = "ReportMain") {
+
         composable("ReportMain") {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(backgroundColor)
-                    .padding(16.dp)
-            ) {
-                LazyColumn(modifier = Modifier.fillMaxWidth().padding(16.dp)) {
-                    item {
-                        Text(
-                            text = "List of complaints",
-                            style = MaterialTheme.typography.headlineSmall,
-                            fontWeight = FontWeight.Bold
-                        )
-
-                        ComplaintStatsScreen(reportList = reportList)
-
-                        Text(
-                            text = "Complaint Management",
-                            style = MaterialTheme.typography.headlineSmall,
-                            fontWeight = FontWeight.Bold,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .background(Color.White)
-                                .padding(16.dp)
-                        )
-                        TableReport(
-                            reportList = reportList,
-                            onDetailClick = { selectedComplaint = it },
-                            navController = navController
-                        )
-                    }
+            ReportManagerContent(
+                reportList = reportList,
+                navController = navController,
+                selectedComplaint = selectedComplaint,
+                onSelectComplaint = { selectedComplaint = it },
+                onCloseDetail = { selectedComplaint = null },
+                onDeleteLocal = { toDelete ->
+                    reportList.remove(toDelete)
                 }
-            }
+            )
         }
-        composable("RespondScreen/{id}") { backStackEntry ->
-            val id = backStackEntry.arguments?.getString("id") ?: ""
-            val complaint = reportList.find { it.reportId == id }
+
+        composable("RespondScreen/{reportId}") { backStackEntry ->
+            val rid = backStackEntry.arguments?.getString("reportId") ?: ""
+            val complaint = reportList.find { it.reportId == rid }
             if (complaint != null) {
                 ReportResponseScreen(
                     complaint = complaint,
-                    onBack = { navController.popBackStack() }
+                    onBack = { navController.popBackStack() },
+                    onResponseSuccess = {
+                        val idx = reportList.indexOfFirst { it.reportId == complaint.reportId }
+                        if (idx != -1) {
+                            val old = reportList[idx]
+                            val updated = old.copy(status = "closed")
+                            reportList[idx] = updated
+                        }
+                    }
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun ReportManagerContent(
+    reportList: MutableList<ComplaintData>,
+    navController: NavController,
+    selectedComplaint: ComplaintData?,
+    onSelectComplaint: (ComplaintData?) -> Unit,
+    onCloseDetail: () -> Unit,
+    onDeleteLocal: (ComplaintData) -> Unit
+) {
+    val backgroundColor = Color(0xFFF4F5F7)
+    val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(backgroundColor)
+            .padding(16.dp)
+    ) {
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
+        ) {
+            item {
+                Text(
+                    text = "List of reports",
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Bold
+                )
+
+                ComplaintStatsScreen(reportList = reportList)
+
+                Text(
+                    text = "Report Management",
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(Color.White)
+                        .padding(16.dp)
+                )
+
+                TableReport(
+                    reportList = reportList,
+                    onDetailClick = { c -> onSelectComplaint(c) },
+                    onRespondClick = { c ->
+                        navController.navigate("RespondScreen/${c.reportId}")
+                    },
+                    onDeleteClick = { c ->
+                        coroutineScope.launch {
+                            if (c.status == "opened") {
+                                Toast.makeText(
+                                    context,
+                                    "Unable to delete an opened report",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                                return@launch
+                            }
+
+                            val result =
+                                RetrofitInstance.reportService.deleteReport(c.reportId)
+
+                            if (result.isSuccessful) {
+                                onDeleteLocal(c)
+                                Toast.makeText(
+                                    context,
+                                    "Report deleted successfully",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            } else {
+                                Toast.makeText(
+                                    context,
+                                    "Delete failed",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            }
+                        }
+                    }
                 )
             }
         }
     }
 
+    // popup detail
     if (selectedComplaint != null) {
         Box(
             modifier = Modifier
@@ -146,54 +245,27 @@ fun ReportManagerScreen() {
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text("Complaint Detail", fontWeight = FontWeight.Bold, fontSize = 20.sp)
+                        Text(
+                            "Report Detail",
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 20.sp
+                        )
                         Text(
                             "Close",
                             color = Color.Red,
-                            modifier = Modifier.clickable { selectedComplaint = null }
+                            modifier = Modifier.clickable { onCloseDetail() }
                         )
                     }
 
                     Spacer(modifier = Modifier.height(16.dp))
-                    Text(
-                        buildAnnotatedString {
-                            withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
-                                append("annunciator: ")
-                            }
-                            append(selectedComplaint!!.user)
-                        },
-                        fontSize = 18.sp
-                    )
-                    Spacer(modifier = Modifier.height(5.dp))
-                    Text(
-                        buildAnnotatedString {
-                            withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
-                                append("Content: ")
-                            }
-                            append(selectedComplaint!!.content)
-                        },
-                        fontSize = 18.sp
-                    )
-                    Spacer(modifier = Modifier.height(5.dp))
-                    Text(
-                        buildAnnotatedString {
-                            withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
-                                append("Type: ")
-                            }
-                            append(selectedComplaint!!.targetType)
-                        },
-                        fontSize = 18.sp
-                    )
-                    Spacer(modifier = Modifier.height(5.dp))
-                    Text(
-                        buildAnnotatedString {
-                            withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
-                                append("Created At: ")
-                            }
-                            append(selectedComplaint!!.createdDate)
-                        },
-                        fontSize = 18.sp
-                    )
+
+                    DetailRow(label = "User ID",    value = selectedComplaint.userId)
+                    DetailRow(label = "Booking ID", value = selectedComplaint.bookingId)
+                    DetailRow(label = "Slot ID",    value = selectedComplaint.slotId)
+                    DetailRow(label = "Title",      value = selectedComplaint.title)
+                    DetailRow(label = "Content",    value = selectedComplaint.content)
+                    DetailRow(label = "Status",     value = selectedComplaint.status)
+                    DetailRow(label = "Created",    value = selectedComplaint.createdAt)
                 }
             }
         }
@@ -202,16 +274,15 @@ fun ReportManagerScreen() {
 
 @Composable
 fun TableReport(
-    reportList: List<ComplaintData>,
+    reportList: MutableList<ComplaintData>,
     onDetailClick: (ComplaintData) -> Unit,
-    navController: NavController
-){
-    val context = LocalContext.current
-    val coroutineScope = rememberCoroutineScope()
+    onRespondClick: (ComplaintData) -> Unit,
+    onDeleteClick: (ComplaintData) -> Unit
+) {
     LazyRow {
         item {
             Column {
-                // Header
+                // header row
                 Row(
                     Modifier
                         .background(Color(0xFF002E5D))
@@ -220,115 +291,114 @@ fun TableReport(
                     ComplaintTableHeader()
                 }
 
-                // Rows
+                // body rows
                 reportList.forEachIndexed { index, complaint ->
-                    val bgColor = if (index % 2 == 0) Color.White else Color(0xFFF5F5F5)
+                    val bgColor =
+                        if (index % 2 == 0) Color.White else Color(0xFFF5F5F5)
                     var expanded by remember { mutableStateOf(false) }
-                    Column {
-                            Row(
+
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(bgColor)
+                            .padding(vertical = 10.dp),
+                        horizontalArrangement = Arrangement.Start
+                    ) {
+                        TableCell((index + 1).toString(), width = 60.dp)
+                        TableCell(complaint.userId, width = 120.dp)
+                        TableCell(complaint.title, width = 180.dp)
+                        TableCell(complaint.status, width = 100.dp)
+                        TableCell(
+                            complaint.createdAt.take(16),
+                            width = 140.dp
+                        )
+
+                        Box(
+                            modifier = Modifier.width(100.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            IconButton(onClick = { expanded = true }) {
+                                Icon(
+                                    Icons.Default.MoreVert,
+                                    contentDescription = "Menu"
+                                )
+                            }
+                            DropdownMenu(
+                                expanded = expanded,
+                                onDismissRequest = { expanded = false },
                                 modifier = Modifier
-                                    .fillMaxWidth()
-                                    .background(bgColor)
-                                    .padding(vertical = 10.dp),
-                                horizontalArrangement = Arrangement.Start
+                                    .border(
+                                        1.dp,
+                                        Color.LightGray,
+                                        RoundedCornerShape(8.dp)
+                                    )
+                                    .background(Color.White)
                             ) {
-                                TableCell(complaint.id, width = 60.dp)
-                                TableCell(complaint.user, width = 100.dp)
-                                TableCell(complaint.content, width = 150.dp)
-                                TableCell(complaint.targetType, width = 140.dp)
-                                TableCell(complaint.status, width = 120.dp)
-                                TableCell(complaint.createdDate, width = 100.dp)
-                                Box(
-                                    modifier = Modifier
-                                        .width(100.dp),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    IconButton(onClick = { expanded = true }) {
-                                        Icon(Icons.Default.MoreVert, contentDescription = "Menu")
+                                // Detail
+                                DropdownMenuItem(
+                                    text = {
+                                        Row(
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            modifier = Modifier.padding(vertical = 4.dp)
+                                        ) {
+                                            Icon(
+                                                imageVector = Icons.Default.Search,
+                                                contentDescription = null,
+                                                modifier = Modifier.size(18.dp)
+                                            )
+                                            Spacer(modifier = Modifier.width(8.dp))
+                                            Text("Detail")
+                                        }
+                                    },
+                                    onClick = {
+                                        expanded = false
+                                        onDetailClick(complaint)
                                     }
-                                    DropdownMenu(
-                                        expanded = expanded,
-                                        onDismissRequest = { expanded = false },
-                                        modifier = Modifier
-                                            .border(1.dp, Color.LightGray, RoundedCornerShape(8.dp))
-                                            .background(Color.White)
-                                    ) {
-                                        DropdownMenuItem(
-                                            text = {
-                                                Row(
-                                                    verticalAlignment = Alignment.CenterVertically,
-                                                    modifier = Modifier.padding(vertical = 4.dp)
-                                                ) {
-                                                    Icon(
-                                                        imageVector = Icons.Default.Search,
-                                                        contentDescription = null,
-                                                        modifier = Modifier.size(18.dp)
-                                                    )
-                                                    Spacer(modifier = Modifier.width(8.dp))
-                                                    Text("Detail")
-                                                }
-                                            },
-                                            onClick = {
-                                                expanded = false
-                                                onDetailClick(complaint)
-                                            }
-                                        )
-                                        DropdownMenuItem(
-                                            text = {
-                                                Row(
-                                                    verticalAlignment = Alignment.CenterVertically,
-                                                    modifier = Modifier.padding(vertical = 4.dp)
-                                                ) {
-                                                    Icon(
-                                                        imageVector = Icons.Default.Edit,
-                                                        contentDescription = null,
-                                                        modifier = Modifier.size(18.dp)
-                                                    )
-                                                    Spacer(modifier = Modifier.width(8.dp))
-                                                    Text("Response")
-                                                }
-                                            },
-                                            onClick = {
-                                                expanded = false
-                                                navController.navigate("RespondScreen/${complaint.reportId}")
-                                            }
-                                        )
-                                        DropdownMenuItem(
-                                            text = {
-                                                Row(
-                                                    verticalAlignment = Alignment.CenterVertically,
-                                                    modifier = Modifier.padding(vertical = 4.dp)
-                                                ) {
-                                                    Icon(
-                                                        imageVector = Icons.Default.Delete,
-                                                        contentDescription = null,
-                                                        modifier = Modifier.size(18.dp)
-                                                    )
-                                                    Spacer(modifier = Modifier.width(8.dp))
-                                                    Text("Delete")
-                                                }
-                                            },
-                                            onClick = {
-                                                expanded = false
-                                                coroutineScope.launch {
-                                                    if (complaint.status == "opened") {
-                                                        Toast.makeText(context, "Unable to delete pending complaint", Toast.LENGTH_SHORT).show()
-                                                        return@launch
-                                                    }
+                                )
 
-                                                    val result = RetrofitInstance.reportService.deleteReport(complaint.reportId)
-                                                    if (result.isSuccessful) {
-                                                        (reportList as MutableList).remove(complaint)
-                                                        Toast.makeText(context, "Complaint deleted successfully", Toast.LENGTH_SHORT).show()
-                                                    } else {
-                                                        Toast.makeText(context, "Delete failed", Toast.LENGTH_SHORT).show()
-                                                    }
-                                                }
-                                            }
+                                // Respond
+                                DropdownMenuItem(
+                                    text = {
+                                        Row(
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            modifier = Modifier.padding(vertical = 4.dp)
+                                        ) {
+                                            Icon(
+                                                imageVector = Icons.Default.Edit,
+                                                contentDescription = null,
+                                                modifier = Modifier.size(18.dp)
+                                            )
+                                            Spacer(modifier = Modifier.width(8.dp))
+                                            Text("Response")
+                                        }
+                                    },
+                                    onClick = {
+                                        expanded = false
+                                        onRespondClick(complaint)
+                                    }
+                                )
 
-                                        )
-
-                                }
+                                // Delete
+                                DropdownMenuItem(
+                                    text = {
+                                        Row(
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            modifier = Modifier.padding(vertical = 4.dp)
+                                        ) {
+                                            Icon(
+                                                imageVector = Icons.Default.Delete,
+                                                contentDescription = null,
+                                                modifier = Modifier.size(18.dp)
+                                            )
+                                            Spacer(modifier = Modifier.width(8.dp))
+                                            Text("Delete")
+                                        }
+                                    },
+                                    onClick = {
+                                        expanded = false
+                                        onDeleteClick(complaint)
+                                    }
+                                )
                             }
                         }
                     }
@@ -338,7 +408,6 @@ fun TableReport(
     }
 }
 
-
 @Composable
 fun ComplaintTableHeader() {
     Row(
@@ -346,20 +415,39 @@ fun ComplaintTableHeader() {
             .fillMaxWidth()
             .background(Color(0xFF002E5D))
     ) {
-        TableCell(text = "ID", isHeader = true, width = 60.dp)
-        TableCell(text = "User", isHeader = true, width = 100.dp)
-        TableCell(text = "Content", isHeader = true, width = 150.dp)
-        TableCell(text = "Slot", isHeader = true, width = 140.dp)
-        TableCell(text = "Status", isHeader = true, width = 120.dp)
-        TableCell(text = "Created at", isHeader = true, width = 100.dp)
-        TableCell(text = "Action", isHeader = true, width = 100.dp)
+        TableCell(text = "No.",     isHeader = true, width = 60.dp)
+        TableCell(text = "User ID", isHeader = true, width = 120.dp)
+        TableCell(text = "Title",   isHeader = true, width = 180.dp)
+        TableCell(text = "Status",  isHeader = true, width = 100.dp)
+        TableCell(text = "Created", isHeader = true, width = 140.dp)
+        TableCell(text = "Action",  isHeader = true, width = 100.dp)
     }
 }
 
+@Composable
+fun TableCell(
+    text: String,
+    width: Dp,
+    isHeader: Boolean = false
+) {
+    Box(
+        modifier = Modifier
+            .width(width)
+            .padding(horizontal = 8.dp),
+        contentAlignment = Alignment.CenterStart
+    ) {
+        Text(
+            text = text,
+            color = if (isHeader) Color.White else MaterialTheme.colorScheme.onBackground,
+            fontWeight = if (isHeader) FontWeight.Bold else FontWeight.Normal,
+            fontSize = 14.sp,
+            maxLines = 1
+        )
+    }
+}
 
 @Composable
 fun ComplaintStatsScreen(reportList: List<ComplaintData>) {
-
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -370,21 +458,21 @@ fun ComplaintStatsScreen(reportList: List<ComplaintData>) {
             icon = Icons.Default.LocalOffer,
             iconColor = Color(0xFF6A5ACD),
             number = reportList.size.toString(),
-            label = "Total of complaints"
+            label = "Total reports"
         )
 
         ComplaintCard(
             icon = Icons.Default.AccessTime,
             iconColor = Color(0xFFFFC107),
-            number = reportList.count {it.status == "pending"}.toString(),
-            label = "Pending complaints"
+            number = reportList.count { it.status == "opened" }.toString(),
+            label = "Open reports"
         )
 
         ComplaintCard(
             icon = Icons.Default.CheckCircle,
             iconColor = Color(0xFF009688),
-            number = reportList.count {it.status == "closed"}.toString(),
-            label = "Closed complaints"
+            number = reportList.count { it.status == "closed" }.toString(),
+            label = "Closed reports"
         )
     }
 }
@@ -438,4 +526,20 @@ fun ComplaintCard(
             }
         }
     }
+}
+
+@Composable
+private fun DetailRow(
+    label: String,
+    value: String
+) {
+    Text(
+        buildAnnotatedString {
+            withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
+                append("$label: ")
+            }
+            append(value)
+        },
+        fontSize = 16.sp
+    )
 }

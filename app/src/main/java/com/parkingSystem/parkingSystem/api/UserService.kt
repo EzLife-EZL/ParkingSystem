@@ -1,6 +1,5 @@
 package com.parkingSystem.parkingSystem.api
 
-import com.parkingSystem.parkingSystem.requestmodel.TokenRequest
 import com.parkingSystem.parkingSystem.responsemodel.User
 import retrofit2.Response
 import retrofit2.http.Body
@@ -15,7 +14,11 @@ interface UserService {
     @PUT("user/{id}/fcm-token")
     suspend fun updateFcmToken(
         @Path("id") userId: String,
-        @Body tokenRequest: TokenRequest
+        @Body token: FcmTokenRequest
     ): Response<Void>
+
+    data class FcmTokenRequest(
+        val token: String
+    )
 
 }

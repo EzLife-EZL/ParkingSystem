@@ -1,8 +1,10 @@
 package com.parkingSystem.parkingSystem.staff
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.SharedPreferences
 import android.os.Bundle
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -18,6 +20,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.google.firebase.messaging.FirebaseMessaging
 import com.parkingSystem.core.common.activity.BaseActivity
 import com.parkingSystem.parkingSystem.ui.theme.ParkingSystemTheme
 import com.parkingSystem.parkingSystem.viewmodel.UserViewModel
@@ -43,6 +46,21 @@ class StaffActivityScreen : BaseActivity() {
     }
 }
 
+@Composable
+fun GetFcmInstance(sharedPreferences: SharedPreferences, userViewModel: UserViewModel) {
+    LaunchedEffect(Unit) {
+        FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
+            if (task.isSuccessful) {
+                val token = task.result
+                Log.d("FCM", "FCM Token: $token")
+                val userId = userViewModel.getUserAttributeString("userId")
+                    userViewModel.sendFcmToken(userId.toString(), token)
+
+            }
+        }
+    }
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun StaffMainScreen(
@@ -50,6 +68,7 @@ fun StaffMainScreen(
     userViewModel: UserViewModel,
     staffViewModel: StaffViewModel
 ) {
+    GetFcmInstance(sharedPreferences, userViewModel)
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
@@ -84,7 +103,6 @@ fun StaffMainScreen(
         NavHost(
             navController = navController,
             startDestination = "home",
-
             modifier = Modifier.padding(paddingValues)
         ) {
             composable("home") {
@@ -94,7 +112,7 @@ fun StaffMainScreen(
                 StaffHistoryScreen(staffViewModel)
             }
             composable("notification") {
-                StaffNotificationScreen()
+                StaffNotificationScreen(context)
             }
             composable("setting") {
                 StaffSettingScreen(navController, sharedPreferences)
@@ -104,9 +122,9 @@ fun StaffMainScreen(
                     onBookingFound = { bookingId ->
                         userViewModel.checkBookingInFirestore(bookingId) { exists ->
                             if (exists) {
-                                Toast.makeText(context, "✅ Đặt chỗ hợp lệ!", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(context, "✅ Valid booking!", Toast.LENGTH_SHORT).show()
                             } else {
-                                Toast.makeText(context, "❌ Không tìm thấy đặt chỗ!", Toast.LENGTH_SHORT).show()
+                                //Toast.makeText(context, "❌ Không tìm thấy đặt chỗ!", Toast.LENGTH_SHORT).show()
                             }
                         }
                     }

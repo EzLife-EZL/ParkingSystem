@@ -24,6 +24,7 @@ import androidx.compose.material.icons.filled.LightMode
 import androidx.compose.material.icons.filled.Logout
 import androidx.compose.material.icons.filled.ModeEdit
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Divider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -36,6 +37,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
@@ -77,6 +79,15 @@ fun Setting(
                 painter= painterResource(id = R.drawable.fixingjpg),
                 contentDescription = "Person",
                 modifier = Modifier.align(Alignment.Center).size(30.dp)
+            )
+        }
+        Box() {
+            SectionSetting(
+                "My report",
+                iconVector = Icons.Default.Warning,
+                onPress = {
+                    navHostController.navigate("my-report")
+                }
             )
         }
         SectionSetting(
@@ -141,7 +152,7 @@ fun SectionSetting(nameField:String, iconVector:ImageVector, onPress:()->Unit, )
         ) {
         Row (
             modifier = Modifier
-                .height(80.dp)
+                .height(100.dp)
                 .fillMaxWidth()
                 .padding(10.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
@@ -151,6 +162,8 @@ fun SectionSetting(nameField:String, iconVector:ImageVector, onPress:()->Unit, )
                 nameField,
                 style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.onBackground,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
                 modifier = Modifier
             )
 

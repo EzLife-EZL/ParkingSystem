@@ -1,8 +1,12 @@
 package com.parkingSystem.parkingSystem.viewmodel
 
 import android.content.SharedPreferences
+import android.os.Build
+import android.util.Log
+import androidx.annotation.RequiresApi
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.parkingSystem.parkingSystem.requestmodel.ReportIssue
 import com.parkingSystem.parkingSystem.responsemodel.BookingDto
 import com.parkingSystem.parkingSystem.retrofit.RetrofitInstance
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -10,6 +14,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import retrofit2.HttpException
 import java.io.IOException
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 
 class BookingDetailViewModel(
     private val sharedPreferences: SharedPreferences
@@ -66,4 +72,44 @@ class BookingDetailViewModel(
             }
         }
     }
+
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    fun reportIssue(
+        bookingId: String,
+        slotId: String,
+        userId: String,
+        title: String,
+        content: String,
+        onSuccess: () -> Unit,
+        onError: (String?) -> Unit
+    ) {
+        viewModelScope.launch {
+            try {
+                val nowIso = java.time.OffsetDateTime.now().toString()
+
+                val body = ReportIssue(
+                    bookingId = bookingId,
+                    userId = userId,
+                    slotId = slotId,
+                    title = title,
+                    content = content,
+                    createdAt = nowIso,
+                    status = "opened"
+                )
+
+                val res = RetrofitInstance.reportService.createReport(body)
+
+                if (res.isSuccessful) {
+                    onSuccess()
+                } else {
+                    val errText = res.errorBody()?.string()
+                    onError(errText ?: "Report failed with ${res.code()}")
+                }
+            } catch (e: Exception) {
+                onError(e.message ?: "Unexpected error")
+            }
+        }
+    }
+
 }
