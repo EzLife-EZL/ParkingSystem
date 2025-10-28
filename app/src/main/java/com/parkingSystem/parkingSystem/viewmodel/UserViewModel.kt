@@ -145,7 +145,7 @@ class UserViewModel(private val sharedPreferences: SharedPreferences) : ViewMode
 
             // Dùng .getOrElse để tránh null hoặc thiếu field
             val userObj = User(
-                uid = claims.getOrElse("id") { claims["sub"] ?: "" },
+                uid = claims.getOrElse("userId") { claims["sub"] ?: "" },
                 name = claims.getOrElse("name") { "" },
                 email = claims.getOrElse("email") { "" },
                 phone = claims.getOrElse("phone") { "" },
@@ -181,27 +181,6 @@ class UserViewModel(private val sharedPreferences: SharedPreferences) : ViewMode
         context.startActivity(intent)
     }
 
-    private fun prepareFilePart(
-        context: Context,
-        fileUri: Uri,
-        partName: String
-    ): MultipartBody.Part? {
-        return try {
-            val inputStream = context.contentResolver.openInputStream(fileUri)
-            val tempFile = File.createTempFile("upload_", ".jpg", context.cacheDir)
-            tempFile.outputStream().use { outputStream ->
-                inputStream?.copyTo(outputStream)
-            }
-
-            val requestFile = tempFile.asRequestBody("image/*".toMediaTypeOrNull())
-            MultipartBody.Part.createFormData(partName, tempFile.name, requestFile)
-        } catch (e: Exception) {
-            Log.e("UserViewModel", "Error preparing file part", e)
-            null
-        }
-    }
-
-
     private val _updateSuccess = MutableStateFlow<Boolean?>(null)
     val updateSuccess: StateFlow<Boolean?> = _updateSuccess
     private val _isUpdating = MutableStateFlow(false)
@@ -210,14 +189,13 @@ class UserViewModel(private val sharedPreferences: SharedPreferences) : ViewMode
     fun resetUpdateStatus() {
         _updateSuccess.value = false
     }
-    fun updateUser(uid: String, updateData: UpdateUserInput, context: Context) {
+    fun updateUser(uid: String, updateData: UpdateUserInput) {
         viewModelScope.launch {
             try {
                 _isUpdating.value = true
 
                 Log.d("UserViewModel", "===== UPDATE USER DEBUG =====")
                 Log.d("UserViewModel", "User ID: $uid")
-                Log.d("UserViewModel", "Update Data: $updateData")
                 Log.d("UserViewModel", "Name: ${updateData.name}")
                 Log.d("UserViewModel", "Email: ${updateData.email}")
                 Log.d("UserViewModel", "Phone: ${updateData.phone}")
