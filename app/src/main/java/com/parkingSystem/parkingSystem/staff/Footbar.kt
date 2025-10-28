@@ -1,5 +1,10 @@
 package com.parkingSystem.parkingSystem.staff
 
+import android.Manifest
+import android.content.pm.PackageManager
+import android.os.Build
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.LinearOutSlowInEasing
@@ -50,6 +55,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat
 import androidx.navigation.NavHostController
 import kotlin.math.roundToInt
 
@@ -58,6 +64,10 @@ fun StaffBottomBar(
     currentRoute: String?,
     navHostController: NavHostController
 ) {
+    val permissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) {
+    }
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -108,7 +118,9 @@ fun StaffBottomBar(
 
         // Floating button in the center
         CircleButton(
-            onClick = { navHostController.navigate("qr_scanner") },
+            onClick = {
+                navHostController.navigate("qr_scanner")
+            },
             modifier = Modifier
                 .align(Alignment.TopCenter)
                 .offset(y = (-30).dp), // Elevate the button
