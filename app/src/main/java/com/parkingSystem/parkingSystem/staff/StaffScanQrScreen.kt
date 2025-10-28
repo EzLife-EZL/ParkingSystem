@@ -104,22 +104,22 @@ fun StaffScanQrScreen(
         // Hiển thị kết quả
         when {
             qrText == null -> {
-                Text("Đang chờ quét mã QR...", style = MaterialTheme.typography.bodyLarge)
+                Text("waiting for QR code...", style = MaterialTheme.typography.bodyLarge)
             }
 
             bookingId != null -> {
                 Column {
-                    Text("✅ Mã hợp lệ", color = MaterialTheme.colorScheme.primary)
+                    Text("Valid ID", color = MaterialTheme.colorScheme.primary)
                     Text("Booking ID: $bookingId")
                     Spacer(modifier = Modifier.height(12.dp))
                     Button(onClick = { onBookingFound(bookingId) }) {
-                        Text("Kiểm tra thông tin đặt chỗ")
+                        Text("Check booking information")
                     }
                 }
             }
 
             else -> {
-                Text("❌ Mã QR không hợp lệ hoặc không đọc được")
+                Text("Invalid QR Code")
             }
         }
     }

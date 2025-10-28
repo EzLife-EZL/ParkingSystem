@@ -35,6 +35,22 @@ class NotificationViewModel(private val sharedPreferences: SharedPreferences) : 
         }
     }
 
+    fun fetchNotificationByStaffId(staffId: String){
+        viewModelScope.launch {
+            try {
+                _isLoading.value = true
+                val response = RetrofitInstance.notificationService.getNotificationByStaffId(staffId)
+                if (response.isSuccessful) {
+                    _notifications.value = response.body() ?: emptyList()
+                } else{
+                    println("Lỗi API fetchNotificationByStaffId: ${response.errorBody()?.string()}")
+                }
+            } catch (e: Exception){
+                e.printStackTrace()
+            }
+        }
+    }
+
     fun createNotification(userId: String, userModel: String, type: String, content: String, navigatePath: String) {
         viewModelScope.launch {
             try {
@@ -53,27 +69,27 @@ class NotificationViewModel(private val sharedPreferences: SharedPreferences) : 
         }
     }
 
-    fun markAsRead(notificationId: String) {
-        viewModelScope.launch {
-            try {
-                // Gọi API markAsRead
-                val response = RetrofitInstance.notificationService.markAsRead(notificationId)
-                if (response.isSuccessful) {
-                    println("Cập nhật trạng thái đã đọc thành công")
-                    // Cập nhật trạng thái thông báo trong danh sách
-                    _notifications.value = _notifications.value.map { notification ->
-                        if (notification.id == notificationId) {
-                            notification.copy(isRead = true)
-                        } else {
-                            notification
-                        }
-                    }
-                } else {
-                    println("Lỗi API markAsRead: ${response.errorBody()?.string()}")
-                }
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
-        }
-    }
+//    fun markAsRead(notificationId: String) {
+//        viewModelScope.launch {
+//            try {
+//                // Gọi API markAsRead
+//                val response = RetrofitInstance.notificationService.markAsRead(notificationId)
+//                if (response.isSuccessful) {
+//                    println("Cập nhật trạng thái đã đọc thành công")
+//                    // Cập nhật trạng thái thông báo trong danh sách
+//                    _notifications.value = _notifications.value.map { notification ->
+//                        if (notification.id == notificationId) {
+//                            notification.copy(isRead = true)
+//                        } else {
+//                            notification
+//                        }
+//                    }
+//                } else {
+//                    println("Lỗi API markAsRead: ${response.errorBody()?.string()}")
+//                }
+//            } catch (e: Exception) {
+//                e.printStackTrace()
+//            }
+//        }
+//    }
 }

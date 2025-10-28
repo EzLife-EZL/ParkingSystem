@@ -1,6 +1,7 @@
 package com.parkingSystem.parkingSystem.user.home.root
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.SharedPreferences
 import android.content.pm.PackageManager
@@ -40,7 +41,6 @@ import com.google.firebase.analytics.analytics
 import com.google.firebase.messaging.FirebaseMessaging
 import com.parkingSystem.core.common.activity.BaseActivity
 import com.parkingSystem.parkingSystem.roomDb.data.dao.AppointmentDao
-import com.parkingSystem.parkingSystem.staff.StaffScanQrScreen
 import com.parkingSystem.parkingSystem.ui.theme.ParkingSystemTheme
 import com.parkingSystem.parkingSystem.user.home.booking.BookingCalendarScreen
 import com.parkingSystem.parkingSystem.user.home.booking.BookingDetailScreen
