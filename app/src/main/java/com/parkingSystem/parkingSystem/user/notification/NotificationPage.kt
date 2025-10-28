@@ -2,9 +2,13 @@
 
 package com.parkingSystem.parkingSystem.user.notification
 import android.content.Context
+import android.os.Build
+import androidx.annotation.RequiresApi
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
@@ -14,6 +18,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -26,6 +31,9 @@ import com.parkingSystem.parkingSystem.ui.theme.LocalGradientTheme
 import com.parkingSystem.parkingSystem.user.home.parking.TopBar
 import com.parkingSystem.parkingSystem.viewmodel.NotificationViewModel
 import com.parkingSystem.parkingSystem.viewmodel.UserViewModel
+import java.time.ZonedDateTime
+import java.time.format.DateTimeFormatter
+import java.util.Locale
 
 @Composable
 fun NotificationPage(context: Context, navHostController: NavHostController) {
@@ -120,33 +128,53 @@ fun NotificationItem(
             }
             else{
                 CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.background
+                    containerColor = MaterialTheme.colorScheme.surfaceTint
                 )
             },
         elevation = CardDefaults.cardElevation(2.dp)
     ) {
-        Column(
+        Row(
             modifier = Modifier
-                .padding(12.dp)
+                .fillMaxWidth()
+                .padding(6.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Start
         ) {
-            Text(
-                text = "Notification",
-                fontWeight = FontWeight.Bold,
-                fontSize = 16.sp,
-                color = Color(0xFF333333)
+            Image(
+                imageVector = Icons.Default.Notifications,
+                contentDescription = null,
+                colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onBackground),
+                modifier = Modifier.padding(12.dp)
             )
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(
-                text = notification.content ?: "",
-                fontSize = 14.sp,
-                color = Color.DarkGray
-            )
-            Spacer(modifier = Modifier.height(6.dp))
-            Text(
-                text = notification.createdAt,
-                fontSize = 12.sp,
-                color = Color.Gray
-            )
+            Column(
+                modifier = Modifier
+                    .padding(12.dp)
+            ) {
+                Text(
+                    text = notification.content ?: "",
+                    fontSize = 15.sp,
+                    color = MaterialTheme.colorScheme.onBackground
+                )
+                Spacer(modifier = Modifier.height(6.dp))
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    Text(
+                        text = formatDate(notification.createdAt),
+                        fontSize = 12.sp,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                }
+            }
         }
+    }
+}
+
+@RequiresApi(Build.VERSION_CODES.O)
+fun formatDate(dateString: String): String {
+    return try {
+        val zonedDateTime = ZonedDateTime.parse(dateString)
+        val formatter = DateTimeFormatter.ofPattern("HH:mm dd/MM/yyyy", Locale.getDefault())
+        zonedDateTime.format(formatter)
+    } catch (e: Exception) {
+        dateString
     }
 }

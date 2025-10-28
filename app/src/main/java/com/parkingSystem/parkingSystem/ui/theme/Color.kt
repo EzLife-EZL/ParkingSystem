@@ -10,7 +10,9 @@ val CustomRed = Color.Red
 val MainTheme = Color(0xFF002E5D)
 val LightDarkTheme = Color(0xFFA2A2A2)
 
-val LightTheme = Color(0xFF00D7CE)
+val LightTheme = Color(0xFF7CE4FF)
+val DarkTheme = Color(0xFF004D88)
+
 
 val MainColor = Color(0xFF002E5D)  // xanh đậm
 

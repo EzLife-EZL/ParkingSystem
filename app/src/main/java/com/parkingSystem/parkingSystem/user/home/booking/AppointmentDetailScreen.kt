@@ -50,8 +50,8 @@ private fun isValidVietnamPlate(raw: String): Boolean {
 
     //Mẫu 30A1-123.45 hoặc 30A1-12345
     val patterns = listOf(
-        Regex("""^\d{2}[A-Z]{1,2}-?\d{3,4}$"""),
-        Regex("""^\d{2}[A-Z]{1,2}\s?\d{3,4}$""")
+        Regex("""^\d{2}[A-Z]{1,2}-?\d{3}\.\d{2}$"""),  // 30A1-123.45
+        Regex("""^\d{2}[A-Z]\d?-?\d{4,5}$""")
     )
     return patterns.any { it.matches(plate) }
 }
