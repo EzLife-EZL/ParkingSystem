@@ -94,7 +94,7 @@ fun NotificationPage(context: Context, navHostController: NavHostController) {
                         onClick = {
                             println("Click notification: ${notification.id}")
                             notificationViewModel.updateReadStatus(notification.id)
-                            navHostController.navigate("booking_detail/${notification.navPath}")
+                            navHostController.navigate(notification.navPath)
                         }
                     )
                 }
