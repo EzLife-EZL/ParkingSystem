@@ -89,6 +89,7 @@ fun Setting(
                     navHostController.navigate("my-report")
                 }
             )
+
         }
         SectionSetting(
             nameField = "Log out",
