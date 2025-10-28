@@ -1,5 +1,4 @@
 package com.parkingSystem.parkingSystem.user.notification
-
 import android.content.Context
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*

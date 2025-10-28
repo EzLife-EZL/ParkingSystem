@@ -132,7 +132,7 @@ class HomeActivity : BaseActivity() {
                     val token = task.result
                     Log.d("FCM", "FCM Token: $token")
                     val userId = userViewModel.getUserAttributeString("userId")
-                        userViewModel.sendFcmToken(userId.toString(), token)
+                    userViewModel.sendFcmToken(userId.toString(), token)
                 }
             }
         }
