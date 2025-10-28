@@ -18,4 +18,6 @@ data class NotificationResponse(
     @SerializedName("id") val id: String,
     @SerializedName("message") val content: String,
     @SerializedName("createdAt") val createdAt: String,
+    @SerializedName("isRead") val isRead: Boolean=true,
+    @SerializedName("navPath") val navPath: String="",
 )

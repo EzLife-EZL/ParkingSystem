@@ -46,95 +46,73 @@ fun StaffNotificationScreen(context: Context) {
     }
 
     Scaffold(
-        topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        text = "Staff Notifications",
-                        fontWeight = FontWeight.Bold,
-                        textAlign = TextAlign.Center
-                    )
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primary,
-                    titleContentColor = Color.White
-                )
-            )
-        }
     ) { paddingValues ->
-        Surface(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues),
-            color = MaterialTheme.colorScheme.background
-        ) {
-            if (notifications.isEmpty()) {
-                // Empty state
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(24.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center
+        if (notifications.isEmpty()) {
+            // Empty state
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Surface(
+                    modifier = Modifier.size(120.dp),
+                    shape = RoundedCornerShape(60.dp),
+                    color = Color(0xFFF5F5F5)
                 ) {
-                    Surface(
-                        modifier = Modifier.size(120.dp),
-                        shape = RoundedCornerShape(60.dp),
-                        color = Color(0xFFF5F5F5)
+                    Box(
+                        contentAlignment = Alignment.Center
                     ) {
-                        Box(
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Notifications,
-                                contentDescription = null,
-                                modifier = Modifier.size(60.dp),
-                                tint = Color(0xFFBDBDBD)
-                            )
-                        }
+                        Icon(
+                            imageVector = Icons.Default.Notifications,
+                            contentDescription = null,
+                            modifier = Modifier.size(60.dp),
+                            tint = Color(0xFFBDBDBD)
+                        )
                     }
+                }
 
-                    Spacer(modifier = Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(24.dp))
 
+                Text(
+                    text = "No notifications yet!",
+                    fontSize = 22.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFF333333)
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Text(
+                    text = "You'll be notified about important updates",
+                    fontSize = 14.sp,
+                    color = Color(0xFF757575)
+                )
+            }
+        } else {
+            // Danh sách thông báo
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(16.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                item {
                     Text(
-                        text = "No notifications yet!",
-                        fontSize = 22.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color(0xFF333333)
-                    )
-
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    Text(
-                        text = "You'll be notified about important updates",
+                        text = "Recent Updates",
                         fontSize = 14.sp,
-                        color = Color(0xFF757575)
+                        fontWeight = FontWeight.SemiBold,
+                        color = Color(0xFF757575),
+                        modifier = Modifier.padding(bottom = 4.dp)
                     )
                 }
-            } else {
-                // Danh sách thông báo
-                LazyColumn(
-                    modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    item {
-                        Text(
-                            text = "Recent Updates",
-                            fontSize = 14.sp,
-                            fontWeight = FontWeight.SemiBold,
-                            color = Color(0xFF757575),
-                            modifier = Modifier.padding(bottom = 4.dp)
-                        )
-                    }
 
-                    items(notifications) { notification ->
-                        StaffNotificationItem(
-                            title = "Notification",
-                            message = notification.content ?: "",
-                            time = notification.createdAt ?: ""
-                        )
-                    }
+                items(notifications) { notification ->
+                    StaffNotificationItem(
+                        title = "Notification",
+                        message = notification.content ?: "",
+                        time = notification.createdAt ?: ""
+                    )
                 }
             }
         }

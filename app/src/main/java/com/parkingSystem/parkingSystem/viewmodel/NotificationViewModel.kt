@@ -35,6 +35,22 @@ class NotificationViewModel(private val sharedPreferences: SharedPreferences) : 
         }
     }
 
+    fun updateReadStatus(notificationId: String) {
+        viewModelScope.launch {
+            try {
+                val response = RetrofitInstance.notificationService.markAsRead(notificationId)
+                if (response.isSuccessful) {
+                    println("Cập nhật trạng thái đã đọc thành công")
+                }
+                else{
+                    println("Lỗi API markAsRead: ${response.errorBody()?.string()}")
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
+
     fun fetchNotificationByStaffId(staffId: String){
         viewModelScope.launch {
             try {

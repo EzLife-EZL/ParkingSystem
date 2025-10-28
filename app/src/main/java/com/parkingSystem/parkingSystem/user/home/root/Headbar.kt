@@ -48,6 +48,7 @@ fun shortenUserName(fullName: String): String {
 fun Headbar(
     sharedPreferences: SharedPreferences,
     userViewModel: UserViewModel,
+    name: String = ""
 ) {
 
     val you by userViewModel.user.collectAsState()
@@ -71,7 +72,8 @@ fun Headbar(
                 modifier = Modifier.size(80.dp)
             )
             Spacer(modifier = Modifier.weight(1f))
-
+            Text(name, fontSize = 20.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onPrimary)
+            Spacer(modifier = Modifier.weight(1f))
             Row(
                 verticalAlignment = Alignment.CenterVertically
             ) {

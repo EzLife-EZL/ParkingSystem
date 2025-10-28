@@ -1,5 +1,8 @@
+@file:OptIn(ExperimentalMaterial3Api::class)
+
 package com.parkingSystem.parkingSystem.user.notification
 import android.content.Context
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -18,6 +21,9 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import androidx.navigation.NavHostController
+import com.parkingSystem.parkingSystem.responsemodel.NotificationResponse
+import com.parkingSystem.parkingSystem.ui.theme.LocalGradientTheme
+import com.parkingSystem.parkingSystem.user.home.parking.TopBar
 import com.parkingSystem.parkingSystem.viewmodel.NotificationViewModel
 import com.parkingSystem.parkingSystem.viewmodel.UserViewModel
 
@@ -34,6 +40,7 @@ fun NotificationPage(context: Context, navHostController: NavHostController) {
 
     val notifications by notificationViewModel.notifications.collectAsState()
     var userId by remember { mutableStateOf("") }
+    val gradientTheme = LocalGradientTheme.current
 
     // Lấy userId và fetch thông báo
     LaunchedEffect(Unit) {
@@ -47,6 +54,7 @@ fun NotificationPage(context: Context, navHostController: NavHostController) {
         modifier = Modifier.fillMaxSize(),
         color = MaterialTheme.colorScheme.background
     ) {
+
         if (notifications.isEmpty()) {
             Column(
                 modifier = Modifier
@@ -82,11 +90,11 @@ fun NotificationPage(context: Context, navHostController: NavHostController) {
             ) {
                 items(notifications) { notification ->
                     NotificationItem(
-                        title = "Notification",
-                        message = notification.content ?: "",
-                        time = notification.createdAt ?: "",
+                        notification,
                         onClick = {
-                            navHostController.navigate("booking_history")
+                            println("Click notification: ${notification.id}")
+                            notificationViewModel.updateReadStatus(notification.id)
+                            navHostController.navigate("booking_detail/${notification.navPath}")
                         }
                     )
                 }
@@ -97,18 +105,24 @@ fun NotificationPage(context: Context, navHostController: NavHostController) {
 
 @Composable
 fun NotificationItem(
-    title: String,
-    message: String,
-    time: String,
+    notification: NotificationResponse,
     onClick: () -> Unit = {}
 ) {
     Card(
         modifier = Modifier
             .clickable { onClick() }
             .fillMaxWidth(),
-        colors = CardDefaults.cardColors(
-            containerColor = Color(0xFFF8F8F8)
-        ),
+        colors =
+            if (notification.isRead) {
+                CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.secondaryContainer
+                )
+            }
+            else{
+                CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.background
+                )
+            },
         elevation = CardDefaults.cardElevation(2.dp)
     ) {
         Column(
@@ -116,20 +130,20 @@ fun NotificationItem(
                 .padding(12.dp)
         ) {
             Text(
-                text = title,
+                text = "Notification",
                 fontWeight = FontWeight.Bold,
                 fontSize = 16.sp,
                 color = Color(0xFF333333)
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
-                text = message,
+                text = notification.content ?: "",
                 fontSize = 14.sp,
                 color = Color.DarkGray
             )
             Spacer(modifier = Modifier.height(6.dp))
             Text(
-                text = time,
+                text = notification.createdAt,
                 fontSize = 12.sp,
                 color = Color.Gray
             )

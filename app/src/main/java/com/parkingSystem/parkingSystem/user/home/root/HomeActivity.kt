@@ -154,14 +154,24 @@ class HomeActivity : BaseActivity() {
         val navBackStackEntry by navHostController.currentBackStackEntryAsState()
         val currentRoute = navBackStackEntry?.destination?.route
 
-        val showTopBars = currentRoute in listOf("home", "setting")
+        val showTopBars = currentRoute in listOf("home", "setting", "notification")
         val showFootBars = currentRoute in listOf("home", "history", "notification", "setting")
         var showFullScreenComment by remember { mutableStateOf(false) } // Local state
 
         Scaffold(
             modifier = modifier.fillMaxSize(),
             topBar = {
-                if (showTopBars && !showFullScreenComment) Headbar(sharedPreferences, userViewModel)
+                if (showTopBars && !showFullScreenComment) {
+                    if (currentRoute == "notification") {
+                        Headbar(sharedPreferences, userViewModel, "Notification")
+                    }
+                    else if (currentRoute == "setting") {
+                        Headbar(sharedPreferences, userViewModel, "Setting")
+                    }
+                    else {
+                        Headbar(sharedPreferences, userViewModel)
+                    }
+                }
             },
             bottomBar = {
                 if (showFootBars && !showFullScreenComment) FootBar(currentRoute, navHostController)

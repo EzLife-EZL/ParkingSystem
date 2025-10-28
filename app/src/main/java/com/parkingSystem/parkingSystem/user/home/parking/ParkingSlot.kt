@@ -197,16 +197,15 @@ fun ParkingGridLayout(
 
     Column(
         modifier = Modifier
-            .fillMaxWidth()
-            .padding(6.dp),
+            .fillMaxWidth(),
         horizontalAlignment = Alignment.Start
     ) {
-        for (y in 0..maxY) {
+        for (y in 1..maxY) {
             Row(
                 horizontalArrangement = Arrangement.Center,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                for (x in 0..maxX) {
+                for (x in 1..maxX) {
                     val slot = slots?.find { it.pos_X == x && it.pos_Y == y }
 
                     if (slot != null) {
