@@ -26,7 +26,13 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.parkingSystem.parkingSystem.R
+import com.parkingSystem.parkingSystem.api.ParkingService
+import com.parkingSystem.parkingSystem.responsemodel.ParkingOverview
+import com.parkingSystem.parkingSystem.responsemodel.RevenueReport
+import com.parkingSystem.parkingSystem.retrofit.RetrofitInstance
 import com.parkingSystem.parkingSystem.ui.theme.LocalGradientTheme
+import java.text.NumberFormat
+import java.util.Locale
 
 @Preview(showBackground = true)
 @Composable
@@ -77,6 +83,33 @@ fun AdminDashboardScreen() {
 
 @Composable
 fun ParkingLotStatusSection() {
+    var overview by remember { mutableStateOf<ParkingOverview?>(null) }
+    var isLoading by remember { mutableStateOf(true) }
+    var errorMessage by remember { mutableStateOf<String?>(null) }
+
+    LaunchedEffect(Unit) {
+        try {
+            val response = RetrofitInstance.parking.getParkingOverview()
+
+            println("Response code: ${response.code()}")
+            println("Response body: ${response.body()}")
+            println("Response error: ${response.errorBody()?.string()}")
+
+            if (response.isSuccessful) {
+                overview = response.body()
+                println("Overview data: $overview")
+            } else {
+                errorMessage = "Error: ${response.code()}"
+            }
+        } catch (e: Exception) {
+            errorMessage = e.message
+            println("Exception: ${e.message}")
+            e.printStackTrace()
+        } finally {
+            isLoading = false
+        }
+    }
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -90,28 +123,34 @@ fun ParkingLotStatusSection() {
             modifier = Modifier.padding(bottom = 12.dp)
         )
 
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            InfoCard(
-                value = "44",
-                title = "Parked Vehicles",
-                backgroundColor = Brush.linearGradient(
-                    colors = listOf(Color(0xFF36D1DC), Color(0xFF5B86E5))
-                ),
-                icon = R.drawable.submit_arrow,
-                modifier = Modifier.weight(1f)
+        if (isLoading) {
+            CircularProgressIndicator(
+                modifier = Modifier.align(Alignment.CenterHorizontally)
             )
-            InfoCard(
-                value = "53",
-                title = "Available Spots",
-                backgroundColor = Brush.linearGradient(
-                    colors = listOf(Color(0xFF11998E), Color(0xFF38EF7D))
-                ),
-                icon = R.drawable.submit_arrow,
-                modifier = Modifier.weight(1f)
-            )
+        } else {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                InfoCard(
+                    value = overview?.parkedVehicles?.toString() ?: "0",
+                    title = "Parked Vehicles",
+                    backgroundColor = Brush.linearGradient(
+                        colors = listOf(Color(0xFF36D1DC), Color(0xFF5B86E5))
+                    ),
+                    icon = R.drawable.submit_arrow,
+                    modifier = Modifier.weight(1f)
+                )
+                InfoCard(
+                    value = overview?.availableSpots?.toString() ?: "0",
+                    title = "Available Spots",
+                    backgroundColor = Brush.linearGradient(
+                        colors = listOf(Color(0xFF11998E), Color(0xFF38EF7D))
+                    ),
+                    icon = R.drawable.submit_arrow,
+                    modifier = Modifier.weight(1f)
+                )
+            }
         }
     }
 }
@@ -216,7 +255,42 @@ fun InfoCard(
 
 @Composable
 fun RevenueReportScreen() {
-    var selectedFilter by remember { mutableStateOf("Month") }
+    var selectedFilter by remember { mutableStateOf("month") }
+    var revenueData by remember { mutableStateOf<RevenueReport?>(null) }
+    var isLoading by remember { mutableStateOf(false) }
+    var errorMessage by remember { mutableStateOf<String?>(null) }
+
+    // Hàm format số tiền
+    fun formatCurrency(amount: Double): String {
+        val formatter = NumberFormat.getCurrencyInstance(Locale.US)
+        return formatter.format(amount)
+    }
+
+    // Load dữ liệu từ API
+    LaunchedEffect(selectedFilter) {
+        isLoading = true
+        errorMessage = null
+        try {
+            val response = RetrofitInstance.parking.getRevenueReport(selectedFilter.lowercase())
+
+            println("Revenue API Response code: ${response.code()}")
+            println("Revenue API Response body: ${response.body()}")
+
+            if (response.isSuccessful) {
+                revenueData = response.body()
+                println("Revenue data loaded: $revenueData")
+            } else {
+                errorMessage = "Error: ${response.code()}"
+                println("Revenue API Error: ${response.errorBody()?.string()}")
+            }
+        } catch (e: Exception) {
+            errorMessage = e.message
+            println("Revenue API Exception: ${e.message}")
+            e.printStackTrace()
+        } finally {
+            isLoading = false
+        }
+    }
 
     Card(
         modifier = Modifier
@@ -246,93 +320,130 @@ fun RevenueReportScreen() {
                 )
                 FilterDropdown(
                     options = listOf("Day", "Week", "Month", "Year"),
-                    selectedOption = selectedFilter,
-                    onOptionSelected = { selectedFilter = it }
+                    selectedOption = selectedFilter.replaceFirstChar { it.uppercase() },
+                    onOptionSelected = { selectedFilter = it.lowercase() }
                 )
             }
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Column {
+            if (isLoading) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(200.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator()
+                }
+            } else if (errorMessage != null) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(200.dp),
+                    contentAlignment = Alignment.Center
+                ) {
                     Text(
-                        "This Month",
-                        color = Color(0xFF718096),
-                        fontSize = 13.sp,
-                        fontWeight = FontWeight.Medium
+                        text = "Failed to load revenue data",
+                        color = Color.Red,
+                        fontSize = 14.sp
                     )
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Row(verticalAlignment = Alignment.CenterVertically) {
+                }
+            } else if (revenueData != null) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Column {
                         Text(
-                            text = "$12,582",
+                            revenueData!!.currentPeriod.label,
+                            color = Color(0xFF718096),
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.Medium
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(
+                                text = formatCurrency(revenueData!!.currentPeriod.amount),
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 28.sp,
+                                color = Color(0xFF2D3748)
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Box(
+                                modifier = Modifier
+                                    .background(
+                                        if (revenueData!!.isPositiveGrowth)
+                                            Color(0xFFD1FAE5)
+                                        else
+                                            Color(0xFFFEE2E2),
+                                        shape = RoundedCornerShape(6.dp)
+                                    )
+                                    .padding(horizontal = 8.dp, vertical = 4.dp)
+                            ) {
+                                Text(
+                                    "${if (revenueData!!.isPositiveGrowth) "+" else "-"}${String.format("%.1f", revenueData!!.growthPercentage)}%",
+                                    color = if (revenueData!!.isPositiveGrowth)
+                                        Color(0xFF059669)
+                                    else
+                                        Color(0xFFDC2626),
+                                    fontSize = 12.sp,
+                                    fontWeight = FontWeight.SemiBold
+                                )
+                            }
+                        }
+                    }
+
+                    Column(horizontalAlignment = Alignment.End) {
+                        Text(
+                            revenueData!!.previousPeriod.label,
+                            color = Color(0xFF718096),
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.Medium
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = formatCurrency(revenueData!!.previousPeriod.amount),
                             fontWeight = FontWeight.Bold,
                             fontSize = 28.sp,
                             color = Color(0xFF2D3748)
                         )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Box(
-                            modifier = Modifier
-                                .background(
-                                    Color(0xFFD1FAE5),
-                                    shape = RoundedCornerShape(6.dp)
-                                )
-                                .padding(horizontal = 8.dp, vertical = 4.dp)
-                        ) {
-                            Text(
-                                "+15%",
-                                color = Color(0xFF059669),
-                                fontSize = 12.sp,
-                                fontWeight = FontWeight.SemiBold
-                            )
-                        }
                     }
                 }
 
-                Column(horizontalAlignment = Alignment.End) {
+                Spacer(modifier = Modifier.height(16.dp))
+                Divider(color = Color(0xFFE2E8F0), thickness = 1.dp)
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier
+                        .background(
+                            if (revenueData!!.isPositiveGrowth)
+                                Color(0xFFF0FDF4)
+                            else
+                                Color(0xFFFEF2F2),
+                            shape = RoundedCornerShape(8.dp)
+                        )
+                        .padding(12.dp)
+                        .fillMaxWidth()
+                ) {
                     Text(
-                        "Last Month",
-                        color = Color(0xFF718096),
-                        fontSize = 13.sp,
-                        fontWeight = FontWeight.Medium
-                    )
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Text(
-                        text = "$10,941",
+                        text = "${if (revenueData!!.isPositiveGrowth) "↑" else "↓"} ${String.format("%.1f", revenueData!!.growthPercentage)}%",
+                        color = if (revenueData!!.isPositiveGrowth)
+                            Color(0xFF059669)
+                        else
+                            Color(0xFFDC2626),
                         fontWeight = FontWeight.Bold,
-                        fontSize = 28.sp,
-                        color = Color(0xFF2D3748)
+                        fontSize = 16.sp
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        revenueData!!.comparisonText,
+                        color = Color(0xFF6B7280),
+                        fontSize = 14.sp
                     )
                 }
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-            Divider(color = Color(0xFFE2E8F0), thickness = 1.dp)
-            Spacer(modifier = Modifier.height(16.dp))
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier
-                    .background(
-                        Color(0xFFF0FDF4),
-                        shape = RoundedCornerShape(8.dp)
-                    )
-                    .padding(12.dp)
-                    .fillMaxWidth()
-            ) {
-                Text(
-                    text = "↑ 15%",
-                    color = Color(0xFF059669),
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 16.sp
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(
-                    "Compared to last month",
-                    color = Color(0xFF6B7280),
-                    fontSize = 14.sp
-                )
             }
         }
     }
@@ -369,7 +480,7 @@ fun VehicleTypeRevenueCard() {
                     color = Color(0xFF2D3748)
                 )
                 FilterDropdown(
-                    options = listOf("Bike", "Car", "MotorBike"),
+                    options = listOf("Bike", "Car"),
                     selectedOption = selectedFilter,
                     onOptionSelected = { selectedFilter = it }
                 )
@@ -467,7 +578,6 @@ fun VehicleTypeRevenueCard() {
                             )
                         )
 
-                        // Line path
                         val linePath = Path().apply {
                             moveTo(points.first().first, points.first().second)
                             for (i in 0 until points.size - 1) {

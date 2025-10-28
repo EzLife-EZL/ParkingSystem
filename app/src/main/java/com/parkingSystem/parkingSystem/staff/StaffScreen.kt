@@ -3,12 +3,14 @@ package com.parkingSystem.parkingSystem.staff
 import android.content.Context
 import android.content.SharedPreferences
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
@@ -28,6 +30,7 @@ class StaffActivityScreen : BaseActivity() {
         enableEdgeToEdge()
         setContent {
             val sharedPreferences = getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
+
             ParkingSystemTheme {
                 val userViewModel: UserViewModel = viewModel(factory = viewModelFactory {
                     initializer { UserViewModel(sharedPreferences) }
@@ -52,6 +55,7 @@ fun StaffMainScreen(
     val currentRoute = navBackStackEntry?.destination?.route
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
+    val context = LocalContext.current
 
     // Define which routes show top/bottom bars
     val showTopBars = currentRoute in listOf("home", "setting", "notification", "history")
@@ -80,6 +84,7 @@ fun StaffMainScreen(
         NavHost(
             navController = navController,
             startDestination = "home",
+
             modifier = Modifier.padding(paddingValues)
         ) {
             composable("home") {
@@ -95,7 +100,18 @@ fun StaffMainScreen(
                 StaffSettingScreen(navController, sharedPreferences)
             }
             composable("qr_scanner") {
-                QRScannerScreen(navController, staffViewModel)
+                StaffScanQrScreen(
+                    onBookingFound = { bookingId ->
+                        userViewModel.checkBookingInFirestore(bookingId) { exists ->
+                            if (exists) {
+                                Toast.makeText(context, "✅ Đặt chỗ hợp lệ!", Toast.LENGTH_SHORT).show()
+                            } else {
+                                Toast.makeText(context, "❌ Không tìm thấy đặt chỗ!", Toast.LENGTH_SHORT).show()
+                            }
+                        }
+                    }
+
+                )
             }
             composable("booking_management") {
                 BookingManagementScreen(staffViewModel)

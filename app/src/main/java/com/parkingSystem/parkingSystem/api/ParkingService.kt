@@ -3,6 +3,8 @@ package com.parkingSystem.parkingSystem.api
 import androidx.room.Delete
 import com.parkingSystem.parkingSystem.responsemodel.CreateSlotEnvelope
 import com.parkingSystem.parkingSystem.responsemodel.Park
+import com.parkingSystem.parkingSystem.responsemodel.ParkingOverview
+import com.parkingSystem.parkingSystem.responsemodel.RevenueReport
 import com.parkingSystem.parkingSystem.responsemodel.Slot
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
@@ -57,4 +59,16 @@ interface ParkingService {
         @Path("parkId") parkId: String,
         @Path("slotId") slotId: String,
     ) : Response<ResponseBody>
+
+    @Headers("Content-Type: application/json")
+    @GET("manager/parking-overview")
+    suspend fun getParkingOverview(): Response<ParkingOverview>
+
+    @Headers("Content-Type: application/json")
+    @GET("manager/revenue-report")
+    suspend fun getRevenueReport(
+        @retrofit2.http.Query("period") period: String = "month"
+    ): Response<RevenueReport>
+
+    companion object
 }

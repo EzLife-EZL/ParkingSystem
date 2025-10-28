@@ -2,6 +2,7 @@ package com.parkingSystem.parkingSystem.staff
 
 import android.content.Intent
 import android.content.SharedPreferences
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -11,11 +12,14 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.parkingSystem.parkingSystem.user.home.startscreen.SignIn
+import com.parkingSystem.parkingSystem.user.personal.SectionSetting
+import com.parkingSystem.parkingSystem.R
 
 // ============ STAFF HISTORY SCREEN ============
 @Composable
@@ -160,21 +164,37 @@ fun StaffSettingScreen(
         }
 
         item {
-            SettingCard(
-                icon = Icons.Default.Person,
-                title = "Personal information",
-                subtitle = "Edit information",
-                onClick = { /* TODO: Navigate to profile */ }
-            )
+            Box() {
+                SettingCard(
+                    icon = Icons.Default.Person,
+                    title = "Personal information",
+                    subtitle = "Edit information",
+                    onClick = { /* TODO: Navigate to profile */ }
+                )
+
+                Image(
+                    painter = painterResource(id = R.drawable.fixingjpg),
+                    contentDescription = "Person",
+                    modifier = Modifier.align(Alignment.CenterEnd).size(40.dp)
+                )
+            }
         }
 
         item {
-            SettingCard(
-                icon = Icons.Default.Lock,
-                title = "Change password",
-                subtitle = "Update password",
-                onClick = { /* TODO: Change password */ }
-            )
+            Box() {
+                SettingCard(
+                    icon = Icons.Default.Lock,
+                    title = "Change password",
+                    subtitle = "Update password",
+                    onClick = { /* TODO: Change password */ }
+                )
+
+                Image(
+                    painter = painterResource(id = R.drawable.fixingjpg),
+                    contentDescription = "Person",
+                    modifier = Modifier.align(Alignment.CenterEnd).size(40.dp)
+                )
+            }
         }
 
         // App Settings Section
@@ -188,39 +208,20 @@ fun StaffSettingScreen(
         }
 
         item {
-            SettingCard(
-                icon = Icons.Default.Notifications,
-                title = "Notification",
-                subtitle = "Notification management",
-                onClick = { /* TODO: Notification settings */ }
-            )
-        }
-        // About Section
-        item {
-            Spacer(modifier = Modifier.height(16.dp))
-            Text(
-                text = "Other",
-                fontSize = 18.sp,
-                fontWeight = FontWeight.SemiBold
-            )
-        }
+            Box() {
+                SettingCard(
+                    icon = Icons.Default.Notifications,
+                    title = "Notification",
+                    subtitle = "Notification management",
+                    onClick = { /* TODO: Notification settings */ }
+                )
 
-        item {
-            SettingCard(
-                icon = Icons.Default.Info,
-                title = "About app",
-                subtitle = "Ver 1.0",
-                onClick = { /* TODO: About */ }
-            )
-        }
-
-        item {
-            SettingCard(
-                icon = Icons.Default.Help,
-                title = "Help",
-                subtitle = "FAQ",
-                onClick = { /* TODO: Help */ }
-            )
+                Image(
+                    painter = painterResource(id = R.drawable.fixingjpg),
+                    contentDescription = "Person",
+                    modifier = Modifier.align(Alignment.CenterEnd).size(40.dp)
+                )
+            }
         }
 
         item {

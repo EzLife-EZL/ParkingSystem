@@ -1,24 +1,11 @@
 package com.parkingSystem.parkingSystem.api
 
+import com.parkingSystem.parkingSystem.requestmodel.MakeReservationBody
+import com.parkingSystem.parkingSystem.requestmodel.ReservationResponse
 import com.parkingSystem.parkingSystem.responsemodel.BookingDto
 import retrofit2.Response
 import retrofit2.http.*
 
-data class MakeReservationBody(
-    val parkId: String,
-    val slotId: String,
-    val userId: String,
-    val startTime: String,
-    val endTime: String,
-    val numberPlate: String? = null,
-    val paymentMethod: String? = "cash",
-    val statusPayment: String? = "unpaid"
-)
-
-data class ReservationResponse(
-    val message: String?,
-    val reservation: Map<String, Any>?
-)
 
 typealias JsonMap = Map<String, Any>
 

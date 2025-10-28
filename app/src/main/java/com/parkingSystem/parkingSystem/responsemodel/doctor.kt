@@ -19,9 +19,9 @@ data class Slot(
     val slot_id: String = "",
     val isBooked: Boolean = false,
     @SerializedName("pos_X")
-    val pos_X: Int = 0,  // String to Int
+    val pos_X: Int = 0,
     @SerializedName("pos_Y")
-    val pos_Y: Int = 0   // String to Int
+    val pos_Y: Int = 0
 )
 
 // Enum cho trạng thái hiển thị
@@ -138,4 +138,43 @@ data class SlotDto(
     @SerializedName("pos_X") val pos_X: String,
     @SerializedName("pos_Y") val pos_Y: String,
     val isBooked: Boolean
+)
+
+data class ParkingOverview(
+    @SerializedName("parkedVehicles")
+    val parkedVehicles: Int = 0,
+
+    @SerializedName("availableSpots")
+    val availableSpots: Int = 0,
+
+    @SerializedName("totalSpots")
+    val totalSpots: Int = 0,
+
+    @SerializedName("occupancyRate")
+    val occupancyRate: Double = 0.0
+)
+
+data class RevenueReport(
+    @SerializedName("currentPeriod")
+    val currentPeriod: PeriodData,
+
+    @SerializedName("previousPeriod")
+    val previousPeriod: PeriodData,
+
+    @SerializedName("growthPercentage")
+    val growthPercentage: Double,
+
+    @SerializedName("isPositiveGrowth")
+    val isPositiveGrowth: Boolean,
+
+    @SerializedName("comparisonText")
+    val comparisonText: String
+)
+
+data class PeriodData(
+    @SerializedName("amount")
+    val amount: Double,
+
+    @SerializedName("label")
+    val label: String
 )
