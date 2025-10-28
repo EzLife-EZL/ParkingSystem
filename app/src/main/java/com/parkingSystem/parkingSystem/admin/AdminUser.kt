@@ -329,7 +329,7 @@ fun AccountRow2(uid: Int, account: User, sharedPreferences: SharedPreferences) {
                 selectedUser = null
             },
             onSave = { id, updatedInput, context ->
-                userViewModel.updateUser(id, updatedInput, context)
+                userViewModel.updateUser(id, updatedInput)
                 showEditDialog = false
                 selectedUser = null
             }
