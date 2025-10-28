@@ -1,5 +1,6 @@
 package com.parkingSystem.parkingSystem.user.home.booking
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -19,6 +20,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
@@ -65,7 +67,7 @@ fun BookingQrScreen(
         ) {
             Icon(
                 imageVector = Icons.Default.ArrowBack,
-                contentDescription = "Quay lại",
+                contentDescription = "Back",
                 tint = MaterialTheme.colorScheme.onPrimaryContainer,
                 modifier = Modifier
                     .size(28.dp)
@@ -76,7 +78,7 @@ fun BookingQrScreen(
             )
 
             Text(
-                text = "Mã QR của bạn",
+                text = "Your QR code",
                 maxLines = 1,
                 style = MaterialTheme.typography.titleLarge.copy(
                     fontWeight = FontWeight.Bold,
@@ -120,7 +122,7 @@ fun BookingQrScreen(
                             bitmap = qrBitmap,
                             contentDescription = "QR Booking",
                             modifier = Modifier
-                                .size(220.dp), // kích thước hiển thị
+                                .size(220.dp),
                             contentScale = ContentScale.Fit,
                         )
                     }
@@ -129,7 +131,7 @@ fun BookingQrScreen(
                 Spacer(modifier = Modifier.height(24.dp))
 
                 Text(
-                    text = "Đưa mã này cho bảo vệ / máy quét để xác nhận đặt chỗ.",
+                    text = "Show this code to the security guard/scanner to confirm your reservation.",
                     style = MaterialTheme.typography.bodyMedium.copy(
                         color = MaterialTheme.colorScheme.onBackground,
                         fontWeight = FontWeight.Medium
@@ -140,7 +142,7 @@ fun BookingQrScreen(
                 Spacer(modifier = Modifier.height(32.dp))
 
                 Text(
-                    text = "ID đặt chỗ:\n$bookingId",
+                    text = "Booking ID:\n$bookingId",
                     style = LocalTextStyle.current.copy(
                         color = MaterialTheme.colorScheme.onBackground,
                         fontWeight = FontWeight.SemiBold,
@@ -156,13 +158,19 @@ fun BookingQrScreen(
                     shape = RoundedCornerShape(12.dp),
                     onClick = { navHostController.popBackStack() },
                     colors = ButtonDefaults.outlinedButtonColors(
-                        contentColor = MaterialTheme.colorScheme.onBackground
+                        containerColor = Color.Transparent,
+                        contentColor = Color(0xFF002E5D)
+                    ),
+                    border = BorderStroke(
+                        width = 1.dp,
+                        color = Color(0xFF002E5D)
                     )
                 ) {
                     Text(
-                        "Quay lại",
+                        "Back",
                         style = MaterialTheme.typography.bodyMedium.copy(
-                            fontWeight = FontWeight.SemiBold
+                            fontWeight = FontWeight.SemiBold,
+                            color = Color(0xFF002E5D)
                         )
                     )
                 }

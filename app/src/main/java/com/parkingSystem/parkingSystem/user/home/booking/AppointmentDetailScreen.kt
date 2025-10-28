@@ -48,9 +48,10 @@ private fun isValidVietnamPlate(raw: String): Boolean {
 
     val plate = normalizePlate(raw)
 
+    //Mẫu 30A1-123.45 hoặc 30A1-12345
     val patterns = listOf(
-        Regex("""^\d{2}[A-Z]{1,2}-?\d{3}\.\d{2}$"""),  // 30A-123.45
-        Regex("""^\d{2}[A-Z]{1,2}-?\d{4,5}$""")        // 30A-12345
+        Regex("""^\d{2}[A-Z]{1,2}-?\d{3,4}$"""),
+        Regex("""^\d{2}[A-Z]{1,2}\s?\d{3,4}$""")
     )
     return patterns.any { it.matches(plate) }
 }
@@ -212,13 +213,6 @@ fun ParkingBookingDetailScreen(
                                     else -> null
                                 }
                             }
-                        )
-                    }
-
-                    item {
-                        NoteSection(
-                            notes = notes,
-                            onNoteChange = { notes = it }
                         )
                     }
 

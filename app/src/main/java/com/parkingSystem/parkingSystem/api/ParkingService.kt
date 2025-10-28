@@ -5,6 +5,7 @@ import com.parkingSystem.parkingSystem.responsemodel.CreateSlotEnvelope
 import com.parkingSystem.parkingSystem.responsemodel.Park
 import com.parkingSystem.parkingSystem.responsemodel.ParkingOverview
 import com.parkingSystem.parkingSystem.responsemodel.RevenueReport
+import com.parkingSystem.parkingSystem.responsemodel.RevenueVehicleType
 import com.parkingSystem.parkingSystem.responsemodel.Slot
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
@@ -69,6 +70,10 @@ interface ParkingService {
     suspend fun getRevenueReport(
         @retrofit2.http.Query("period") period: String = "month"
     ): Response<RevenueReport>
+
+    @Headers("Content-Type: application/json")
+    @GET("manager/revenue-vehicle-type")
+    suspend fun getRevenueVehicleType(): Response<List<RevenueVehicleType>>
 
     companion object
 }

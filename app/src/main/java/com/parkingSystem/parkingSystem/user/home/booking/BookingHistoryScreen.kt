@@ -364,7 +364,7 @@ private fun BookingCard(
                     shape = RoundedCornerShape(12.dp)
                 ) {
                     Text(
-                        "Huỷ đặt chỗ",
+                        "Cancel booking",
                         color = MaterialTheme.colorScheme.error,
                         fontWeight = FontWeight.Bold
                     )

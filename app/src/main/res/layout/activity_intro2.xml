@@ -34,8 +34,8 @@
         android:src="@drawable/logo_gopark" />
 
     <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="353dp"
+        android:layout_height="67dp"
         android:layout_margin="30dp"
         android:text="Find a sutable slot for parking"
         android:textColor="@color/blueblack"

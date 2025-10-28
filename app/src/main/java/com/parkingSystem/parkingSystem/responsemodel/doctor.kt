@@ -135,8 +135,8 @@ data class SlotData(
 
 data class SlotDto(
     val slotName: String,
-    @SerializedName("pos_X") val pos_X: String,
-    @SerializedName("pos_Y") val pos_Y: String,
+    @SerializedName("pos_X") val pos_X: Int,
+    @SerializedName("pos_Y") val pos_Y: Int,
     val isBooked: Boolean
 )
 
@@ -178,3 +178,35 @@ data class PeriodData(
     @SerializedName("label")
     val label: String
 )
+
+data class RevenueVehicleType(
+    @SerializedName("type_vehicle")
+    val typeVehicle: String = "",
+
+    @SerializedName("currentMonth")
+    val currentMonth: Double = 0.0,
+
+    @SerializedName("lastMonth")
+    val lastMonth: Double = 0.0,
+
+    @SerializedName("growth")
+    val growth: Double = 0.0,
+
+    @SerializedName("totalBookings")
+    val totalBookings: Int = 0,
+
+    @SerializedName("paidBookings")
+    val paidBookings: Int = 0,
+
+    @SerializedName("months")
+    val months: List<Double> = emptyList(),
+)
+
+data class RevenueResponse(
+    @SerializedName("labels")
+    val labels: List<String> = emptyList(),
+
+    @SerializedName("series")
+    val series: List<RevenueVehicleType> = emptyList()
+)
+
