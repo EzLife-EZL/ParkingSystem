@@ -275,7 +275,7 @@ fun ConfirmBookingScreen(context: Context, navHostController: NavHostController,
                             Spacer(modifier = Modifier.height(16.dp))
 
                             Text(
-                                text = "Đặt lịch thành công!",
+                                text = "Succesful!",
                                 fontWeight = FontWeight.Medium,
                                 style = MaterialTheme.typography.bodyLarge,
                                 textAlign = TextAlign.Center

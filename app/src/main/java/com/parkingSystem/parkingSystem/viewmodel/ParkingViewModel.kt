@@ -56,7 +56,7 @@ class ParkingViewModel(private val sharedPreferences: SharedPreferences) : ViewM
 
         if (res.isSuccessful) {
             return@withContext ReservationResponse(
-                message = "Đặt chỗ thành công!",
+                message = "Succesful",
                 reservation = null
             )
         } else {
