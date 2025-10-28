@@ -59,7 +59,7 @@ val sidebarItems = listOf(
         navigationField = "AdminParking"
     ),
     SidebarItem(
-        nameField = "Report Management",
+        nameField = "Complaint Management",
         iconField = R.drawable.report,
         navigationField = "ReportManager"
     )

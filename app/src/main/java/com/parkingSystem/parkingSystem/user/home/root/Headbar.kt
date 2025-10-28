@@ -72,7 +72,7 @@ fun Headbar(
                 modifier = Modifier.size(80.dp)
             )
             Spacer(modifier = Modifier.weight(1f))
-            Text(name, fontSize = 20.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onPrimary)
+            Text(name, fontSize = 20.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)
             Spacer(modifier = Modifier.weight(1f))
             Row(
                 verticalAlignment = Alignment.CenterVertically

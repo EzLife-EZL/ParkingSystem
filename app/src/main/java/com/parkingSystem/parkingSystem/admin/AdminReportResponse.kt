@@ -83,7 +83,7 @@ fun ReportResponseScreen(
                     Spacer(modifier = Modifier.width(16.dp))
 
                     Text(
-                        text = "Reply to Report",
+                        text = "Reply to Complaint",
                         fontWeight = FontWeight.Bold,
                         fontSize = 22.sp,
                         color = Color(0xFF002E5D),
@@ -114,7 +114,7 @@ fun ReportResponseScreen(
                         verticalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
                         Text(
-                            text = "Report Information",
+                            text = "Complaint Information",
                             fontWeight = FontWeight.Bold,
                             fontSize = 18.sp,
                             color = Color(0xFF002E5D)
@@ -231,7 +231,7 @@ fun ReportResponseScreen(
                                 onValueChange = { responseContent = it },
                                 placeholder = {
                                     Text(
-                                        "Enter your response to the user's report...",
+                                        "Enter your response to the user's complain...",
                                         color = Color(0xFF9CA3AF)
                                     )
                                 },

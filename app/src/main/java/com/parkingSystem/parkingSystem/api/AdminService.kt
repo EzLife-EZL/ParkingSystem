@@ -22,9 +22,9 @@ interface AdminService {
     suspend fun getUser(@Path("id") id: String): User
 
     @Headers("Content-Type: application/json")
-    @PUT("admin/update-user-info/{id}")
+    @PUT("user/update-profile/{userId}")
     suspend fun updateUserInfo(
-        @Path("id") userId: String,
+        @Path("userId") userId: String,
         @Body updateData: UpdateUserInput
     ): Response<Void>
 

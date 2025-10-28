@@ -294,11 +294,11 @@ fun BookingDetailScreen(
                                     ) {
                                         Icon(
                                             imageVector = Icons.Default.Warning,
-                                            contentDescription = "Report an issue",
+                                            contentDescription = "Complain an issue",
                                             modifier = Modifier.size(20.dp)
                                         )
                                         Text(
-                                            "Report an issue",
+                                            "Complain an issue",
                                             fontWeight = FontWeight.Bold
                                         )
                                     }

@@ -83,7 +83,7 @@ fun Setting(
         }
         Box() {
             SectionSetting(
-                "My report",
+                "My complaint",
                 iconVector = Icons.Default.Warning,
                 onPress = {
                     navHostController.navigate("my-report")

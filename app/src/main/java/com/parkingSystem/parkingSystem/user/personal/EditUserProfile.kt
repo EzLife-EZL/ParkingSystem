@@ -61,10 +61,9 @@ fun EditUserProfile(sharedPreferences: SharedPreferences, navHostController: Nav
     var nameText by remember { mutableStateOf(user.value?.name ?: "") }
     var emailText by remember { mutableStateOf(user.value?.email ?: "") }
     var phoneText by remember { mutableStateOf(user.value?.phone ?: "") }
-    var addressText by remember { mutableStateOf(user.value?.address ?: "") }
     var passwordText by remember { mutableStateOf("") }
     var repasswordText by remember { mutableStateOf("") }
-
+    var uid = userViewModel.getUserAttributeString("userId")
     Scaffold(
         topBar = { HeadbarEditUserProfile(navHostController) },
     ) { paddingValues ->
@@ -80,7 +79,6 @@ fun EditUserProfile(sharedPreferences: SharedPreferences, navHostController: Nav
                     nameText, { nameText = it },
                     emailText, { emailText = it },
                     phoneText, { phoneText = it },
-                    addressText, { addressText = it },
                     passwordText, { passwordText = it },
                     repasswordText, { repasswordText = it },
                 )
@@ -88,14 +86,12 @@ fun EditUserProfile(sharedPreferences: SharedPreferences, navHostController: Nav
             item {
                 user?.let {
                     AcceptEditButton(
-                        userId = it.value?.uid.toString(),
+                        userId = uid,
                         nameText = nameText,
                         emailText = emailText,
                         phoneText = phoneText,
-                        addressText = addressText,
                         passwordText = passwordText,
                         repasswordText = repasswordText,
-                        avatarURL = avatarURL,
                         role = it.value?.role ?: "User",
                         viewModel = userViewModel,
                         navHostController = navHostController
@@ -235,7 +231,6 @@ fun ContentEditUser(
     nameText: String, onNameChange: (String) -> Unit,
     emailText: String, onEmailChange: (String) -> Unit,
     phoneText: String, onPhoneChange: (String) -> Unit,
-    addressText: String, onAddressChange: (String) -> Unit,
     passwordText: String, onPasswordChange: (String) -> Unit,
     repasswordText: String, onRepasswordChange: (String) -> Unit,
 ) {
@@ -248,7 +243,6 @@ fun ContentEditUser(
         InputEditField("Full name", nameText, onNameChange, "Input name")
         InputEditField("Email", emailText, onEmailChange, "Input email")
         InputEditField("Phone", phoneText, onPhoneChange, "Input phone")
-        InputEditField("Address", addressText, onAddressChange, "Input address")
         InputEditField("Password", passwordText, onPasswordChange, "Input password", true)
         InputEditField("Re-password", repasswordText, onRepasswordChange, "Re-input password", true)
     }
@@ -260,10 +254,8 @@ fun AcceptEditButton(
     nameText: String,
     emailText: String,
     phoneText: String,
-    addressText: String,
     passwordText: String,
     repasswordText: String,
-    avatarURL: Uri?,
     role: String,
     viewModel: UserViewModel,
     navHostController: NavHostController
@@ -274,7 +266,7 @@ fun AcceptEditButton(
 
     LaunchedEffect(updateSuccess) {
         if (updateSuccess == true) {
-            navHostController.navigate("personal")
+            navHostController.navigate("home")
             viewModel.resetUpdateStatus()
         }
     }
@@ -297,11 +289,9 @@ fun AcceptEditButton(
                     name = nameText,
                     email = emailText,
                     phone = phoneText,
-                    address = addressText,
-                    role = role,
                     password = if (passwordText.isNotEmpty()) passwordText else null
                 )
-                viewModel.updateUser(userId, updateUser, context)
+                viewModel.updateUser(userId, updateUser)
             }
         }
     ) {

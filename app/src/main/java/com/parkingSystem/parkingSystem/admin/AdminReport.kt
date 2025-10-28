@@ -71,7 +71,7 @@ fun ReportManagerScreen() {
                     RetrofitInstance.reportService.getAllReports()
 
                 android.util.Log.d(
-                    "ReportManagerScreen",
+                    "ComplaintManagerScreen",
                     "Fetched ${response.size} reports from API"
                 )
 
@@ -94,7 +94,7 @@ fun ReportManagerScreen() {
                     )
                 }
             } catch (e: Exception) {
-                android.util.Log.e("ReportManagerScreen", "Failed to load reports", e)
+                android.util.Log.e("ComplaintManagerScreen", "Failed to load reports", e)
                 Toast.makeText(
                     context,
                     "Failed to load reports: ${e.message ?: "unknown"}",

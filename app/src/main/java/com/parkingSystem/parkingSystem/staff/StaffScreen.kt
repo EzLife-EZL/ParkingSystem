@@ -3,11 +3,13 @@ package com.parkingSystem.parkingSystem.staff
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.SharedPreferences
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -23,11 +25,14 @@ import androidx.navigation.compose.rememberNavController
 import com.google.firebase.messaging.FirebaseMessaging
 import com.parkingSystem.core.common.activity.BaseActivity
 import com.parkingSystem.parkingSystem.ui.theme.ParkingSystemTheme
+import com.parkingSystem.parkingSystem.user.home.booking.BookingDetailScreen
+import com.parkingSystem.parkingSystem.user.home.parking.ParkingSlot
 import com.parkingSystem.parkingSystem.viewmodel.UserViewModel
 import com.parkingSystem.parkingSystem.viewmodel.StaffViewModel
 import kotlinx.coroutines.launch
 
 class StaffActivityScreen : BaseActivity() {
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -61,6 +66,7 @@ fun GetFcmInstance(sharedPreferences: SharedPreferences, userViewModel: UserView
     }
 }
 
+@RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun StaffMainScreen(
@@ -112,7 +118,7 @@ fun StaffMainScreen(
                 StaffHistoryScreen(staffViewModel)
             }
             composable("notification") {
-                StaffNotificationScreen(context)
+                StaffNotificationScreen(context, navController)
             }
             composable("setting") {
                 StaffSettingScreen(navController, sharedPreferences)
@@ -133,6 +139,19 @@ fun StaffMainScreen(
             }
             composable("booking_management") {
                 BookingManagementScreen(staffViewModel)
+            }
+
+            composable("park/{parkId}") { backStackEntry ->
+                val parkId = backStackEntry.arguments?.getString("parkId") ?: ""
+                StaffParkingSlot(context, navController, parkId)
+            }
+            composable("booking_detail/{bookingId}") { backStackEntry ->
+                val bookingIdArg = backStackEntry.arguments?.getString("bookingId") ?: ""
+                BookingDetailScreen(
+                    sharedPreferences = sharedPreferences,
+                    navHostController = navController,
+                    bookingId = bookingIdArg
+                )
             }
         }
     }

@@ -14,6 +14,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
@@ -77,9 +78,6 @@ fun AdminDashboardScreen() {
             Spacer(modifier = Modifier.height(16.dp))
             RevenueReportScreen()
             Spacer(modifier = Modifier.height(16.dp))
-            VehicleTypeRevenueCard(
-            )
-            Spacer(modifier = Modifier.height(20.dp))
         }
     }
 }
@@ -314,7 +312,7 @@ fun RevenueReportScreen() {
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    "Revenue Report",
+                    "Revenue Complaint",
                     fontWeight = FontWeight.Bold,
                     fontSize = 20.sp,
                     color = Color(0xFF2D3748)
@@ -449,237 +447,237 @@ fun RevenueReportScreen() {
         }
     }
 }
-
-@Composable
-fun VehicleTypeRevenueCard(
-    fetchRevenue: suspend () -> RevenueResponse?
-) {
-    var selectedFilter by remember { mutableStateOf("Bike") }
-    var revenueResponse by remember { mutableStateOf<RevenueResponse?>(null) }
-    var isLoading by remember { mutableStateOf(false) }
-    var errorMessage by remember { mutableStateOf<String?>(null) }
-
-    val scope = rememberCoroutineScope()
-
-    val defaultLabels = listOf("Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec")
-
-    LaunchedEffect(Unit) {
-        isLoading = true
-        errorMessage = null
-        try {
-            val res = fetchRevenue()
-            revenueResponse = res
-        } catch (e: Exception) {
-            errorMessage = e.message ?: "Lỗi khi tải dữ liệu"
-        } finally {
-            isLoading = false
-        }
-    }
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp)
-            .shadow(
-                elevation = 4.dp,
-                shape = RoundedCornerShape(16.dp),
-                spotColor = Color.Black.copy(alpha = 0.08f)
-            ),
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White)
-    ) {
-        Column(
-            modifier = Modifier.padding(20.dp)
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    "Revenue by Vehicle Type",
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 20.sp,
-                    color = Color(0xFF2D3748)
-                )
-                FilterDropdown(
-                    options = listOf("Bike", "Car"),
-                    selectedOption = selectedFilter,
-                    onOptionSelected = { selectedFilter = it }
-                )
-            }
-
-            Spacer(modifier = Modifier.height(20.dp))
-
-            // Hiển thị loading / error nếu cần
-            if (isLoading) {
-                Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator()
-                }
-            } else if (errorMessage != null) {
-                Text(
-                    text = errorMessage ?: "Unknown error",
-                    color = Color.Red,
-                    modifier = Modifier.fillMaxWidth(),
-                    textAlign = TextAlign.Center
-                )
-            } else {
-                val labels = revenueResponse?.labels ?: defaultLabels
-
-                val series = revenueResponse?.series ?: emptyList()
-                val selectedSeries = series.firstOrNull { s ->
-                    s.typeVehicle.equals(selectedFilter, ignoreCase = true)
-                } ?: series.firstOrNull { s ->
-                    s.typeVehicle.contains(selectedFilter, ignoreCase = true)
-                }
-
-                val monthsList: List<Double> = selectedSeries?.months ?: List(12) { 0.0 }
-
-                val revenueData: LinkedHashMap<String, Float> = linkedMapOf()
-                val monthCount = minOf(labels.size, monthsList.size) // an toàn
-                for (i in 0 until monthCount) {
-                    val label = labels[i]
-                    val value = monthsList[i].toFloat()
-                    revenueData[label] = value
-                }
-
-                if (revenueData.size < 12) {
-                    for (i in revenueData.size until defaultLabels.size) {
-                        revenueData[defaultLabels[i]] = 0f
-                    }
-                }
-
-                val totalRevenue = revenueData.values.sum()
-                val avgRevenue = if (revenueData.isNotEmpty()) totalRevenue / revenueData.size else 0f
-                val maxValue = revenueData.values.maxOrNull() ?: 1f
-                val minValue = revenueData.values.minOrNull() ?: 0f
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    StatBox(
-                        label = "Total Revenue",
-                        value = "${String.format("%.0f", totalRevenue)}",
-                        color = Color(0xFF3B82F6)
-                    )
-                    StatBox(
-                        label = "Average",
-                        value = "${String.format("%.0f", avgRevenue)}",
-                        color = Color(0xFF10B981)
-                    )
-                }
-
-                Spacer(modifier = Modifier.height(28.dp))
-
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(220.dp)
-                        .background(Color(0xFFFAFAFA), shape = RoundedCornerShape(12.dp))
-                        .padding(16.dp)
-                ) {
-                    Canvas(modifier = Modifier.fillMaxSize()) {
-                        val range = maxValue - minValue
-                        val points = revenueData.values.mapIndexed { index, value ->
-                            val x = if (revenueData.size > 1) {
-                                (size.width / (revenueData.size - 1)) * index
-                            } else size.width / 2
-                            val normalizedValue = if (range > 0) (value - minValue) / range else 0.5f
-                            val y = size.height - (size.height * 0.15f) - (normalizedValue * size.height * 0.7f)
-                            Pair(x, y)
-                        }
-
-                        for (i in 0..4) {
-                            val y = size.height * (i / 4f)
-                            drawLine(
-                                color = Color(0xFFE5E7EB),
-                                start = androidx.compose.ui.geometry.Offset(0f, y),
-                                end = androidx.compose.ui.geometry.Offset(size.width, y),
-                                strokeWidth = 1.dp.toPx()
-                            )
-                        }
-
-                        if (points.size > 1) {
-                            val gradientPath = Path().apply {
-                                moveTo(0f, size.height)
-                                lineTo(points.first().first, points.first().second)
-                                for (i in 0 until points.size - 1) {
-                                    val current = points[i]
-                                    val next = points[i + 1]
-                                    val cp1X = current.first + (next.first - current.first) / 3
-                                    val cp2X = current.first + 2 * (next.first - current.first) / 3
-                                    cubicTo(cp1X, current.second, cp2X, next.second, next.first, next.second)
-                                }
-                                lineTo(size.width, size.height)
-                                close()
-                            }
-                            drawPath(
-                                path = gradientPath,
-                                brush = Brush.verticalGradient(
-                                    colors = listOf(
-                                        Color(0xFF3B82F6).copy(alpha = 0.3f),
-                                        Color(0xFF3B82F6).copy(alpha = 0.05f)
-                                    )
-                                )
-                            )
-
-                            val linePath = Path().apply {
-                                moveTo(points.first().first, points.first().second)
-                                for (i in 0 until points.size - 1) {
-                                    val current = points[i]
-                                    val next = points[i + 1]
-                                    val cp1X = current.first + (next.first - current.first) / 3
-                                    val cp2X = current.first + 2 * (next.first - current.first) / 3
-                                    cubicTo(cp1X, current.second, cp2X, next.second, next.first, next.second)
-                                }
-                            }
-                            drawPath(
-                                path = linePath,
-                                color = Color(0xFF3B82F6),
-                                style = Stroke(width = 3.dp.toPx(), cap = StrokeCap.Round)
-                            )
-                        }
-                        points.forEach { point ->
-                            drawCircle(
-                                color = Color.White,
-                                radius = 8.dp.toPx(),
-                                center = androidx.compose.ui.geometry.Offset(point.first, point.second)
-                            )
-                            drawCircle(
-                                color = Color(0xFF3B82F6),
-                                radius = 5.dp.toPx(),
-                                center = androidx.compose.ui.geometry.Offset(point.first, point.second)
-                            )
-                        }
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    // render label từ revenueData (đảm bảo giữ thứ tự)
-                    revenueData.keys.forEachIndexed { index, label ->
-                        Text(
-                            text = label,
-                            fontSize = 12.sp,
-                            color = Color(0xFF6B7280),
-                            fontWeight = FontWeight.Medium,
-                            modifier = Modifier.weight(1f),
-                            textAlign = when (index) {
-                                0 -> TextAlign.Start
-                                revenueData.size - 1 -> TextAlign.End
-                                else -> TextAlign.Center
-                            }
-                        )
-                    }
-                }
-            }
-        }
-    }
-}
+//
+//@Composable
+//fun VehicleTypeRevenueCard(
+//    fetchRevenue: suspend () -> RevenueResponse?
+//) {
+//    var selectedFilter by remember { mutableStateOf("Bike") }
+//    var revenueResponse by remember { mutableStateOf<RevenueResponse?>(null) }
+//    var isLoading by remember { mutableStateOf(false) }
+//    var errorMessage by remember { mutableStateOf<String?>(null) }
+//
+//    val scope = rememberCoroutineScope()
+//
+//    val defaultLabels = listOf("Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec")
+//
+//    LaunchedEffect(Unit) {
+//        isLoading = true
+//        errorMessage = null
+//        try {
+//            val res = fetchRevenue()
+//            revenueResponse = res
+//        } catch (e: Exception) {
+//            errorMessage = e.message ?: "Lỗi khi tải dữ liệu"
+//        } finally {
+//            isLoading = false
+//        }
+//    }
+//    Card(
+//        modifier = Modifier
+//            .fillMaxWidth()
+//            .padding(horizontal = 16.dp)
+//            .shadow(
+//                elevation = 4.dp,
+//                shape = RoundedCornerShape(16.dp),
+//                spotColor = Color.Black.copy(alpha = 0.08f)
+//            ),
+//        shape = RoundedCornerShape(16.dp),
+//        colors = CardDefaults.cardColors(containerColor = Color.White)
+//    ) {
+//        Column(
+//            modifier = Modifier.padding(20.dp)
+//        ) {
+//            Row(
+//                modifier = Modifier.fillMaxWidth(),
+//                horizontalArrangement = Arrangement.SpaceBetween,
+//                verticalAlignment = Alignment.CenterVertically
+//            ) {
+//                Text(
+//                    "Revenue by Vehicle Type",
+//                    fontWeight = FontWeight.Bold,
+//                    fontSize = 20.sp,
+//                    color = Color(0xFF2D3748)
+//                )
+//                FilterDropdown(
+//                    options = listOf("Bike", "Car"),
+//                    selectedOption = selectedFilter,
+//                    onOptionSelected = { selectedFilter = it }
+//                )
+//            }
+//
+//            Spacer(modifier = Modifier.height(20.dp))
+//
+//            // Hiển thị loading / error nếu cần
+//            if (isLoading) {
+//                Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+//                    CircularProgressIndicator()
+//                }
+//            } else if (errorMessage != null) {
+//                Text(
+//                    text = errorMessage ?: "Unknown error",
+//                    color = Color.Red,
+//                    modifier = Modifier.fillMaxWidth(),
+//                    textAlign = TextAlign.Center
+//                )
+//            } else {
+//                val labels = revenueResponse?.labels ?: defaultLabels
+//
+//                val series = revenueResponse?.series ?: emptyList()
+//                val selectedSeries = series.firstOrNull { s ->
+//                    s.typeVehicle.equals(selectedFilter, ignoreCase = true)
+//                } ?: series.firstOrNull { s ->
+//                    s.typeVehicle.contains(selectedFilter, ignoreCase = true)
+//                }
+//
+//                val monthsList: List<Double> = selectedSeries?.months ?: List(12) { 0.0 }
+//
+//                val revenueData: LinkedHashMap<String, Float> = linkedMapOf()
+//                val monthCount = minOf(labels.size, monthsList.size) // an toàn
+//                for (i in 0 until monthCount) {
+//                    val label = labels[i]
+//                    val value = monthsList[i].toFloat()
+//                    revenueData[label] = value
+//                }
+//
+//                if (revenueData.size < 12) {
+//                    for (i in revenueData.size until defaultLabels.size) {
+//                        revenueData[defaultLabels[i]] = 0f
+//                    }
+//                }
+//
+//                val totalRevenue = revenueData.values.sum()
+//                val avgRevenue = if (revenueData.isNotEmpty()) totalRevenue / revenueData.size else 0f
+//                val maxValue = revenueData.values.maxOrNull() ?: 1f
+//                val minValue = revenueData.values.minOrNull() ?: 0f
+//
+//                Row(
+//                    modifier = Modifier.fillMaxWidth(),
+//                    horizontalArrangement = Arrangement.SpaceBetween
+//                ) {
+//                    StatBox(
+//                        label = "Total Revenue",
+//                        value = "${String.format("%.0f", totalRevenue)}",
+//                        color = Color(0xFF3B82F6)
+//                    )
+//                    StatBox(
+//                        label = "Average",
+//                        value = "${String.format("%.0f", avgRevenue)}",
+//                        color = Color(0xFF10B981)
+//                    )
+//                }
+//
+//                Spacer(modifier = Modifier.height(28.dp))
+//
+//                Box(
+//                    modifier = Modifier
+//                        .fillMaxWidth()
+//                        .height(220.dp)
+//                        .background(Color(0xFFFAFAFA), shape = RoundedCornerShape(12.dp))
+//                        .padding(16.dp)
+//                ) {
+//                    Canvas(modifier = Modifier.fillMaxSize()) {
+//                        val range = maxValue - minValue
+//                        val points = revenueData.values.mapIndexed { index, value ->
+//                            val x = if (revenueData.size > 1) {
+//                                (size.width / (revenueData.size - 1)) * index
+//                            } else size.width / 2
+//                            val normalizedValue = if (range > 0) (value - minValue) / range else 0.5f
+//                            val y = size.height - (size.height * 0.15f) - (normalizedValue * size.height * 0.7f)
+//                            Pair(x, y)
+//                        }
+//
+//                        for (i in 0..4) {
+//                            val y = size.height * (i / 4f)
+//                            drawLine(
+//                                color = Color(0xFFE5E7EB),
+//                                start = Offset(0f, y),
+//                                end = androidx.compose.ui.geometry.Offset(size.width, y),
+//                                strokeWidth = 1.dp.toPx()
+//                            )
+//                        }
+//
+//                        if (points.size > 1) {
+//                            val gradientPath = Path().apply {
+//                                moveTo(0f, size.height)
+//                                lineTo(points.first().first, points.first().second)
+//                                for (i in 0 until points.size - 1) {
+//                                    val current = points[i]
+//                                    val next = points[i + 1]
+//                                    val cp1X = current.first + (next.first - current.first) / 3
+//                                    val cp2X = current.first + 2 * (next.first - current.first) / 3
+//                                    cubicTo(cp1X, current.second, cp2X, next.second, next.first, next.second)
+//                                }
+//                                lineTo(size.width, size.height)
+//                                close()
+//                            }
+//                            drawPath(
+//                                path = gradientPath,
+//                                brush = Brush.verticalGradient(
+//                                    colors = listOf(
+//                                        Color(0xFF3B82F6).copy(alpha = 0.3f),
+//                                        Color(0xFF3B82F6).copy(alpha = 0.05f)
+//                                    )
+//                                )
+//                            )
+//
+//                            val linePath = Path().apply {
+//                                moveTo(points.first().first, points.first().second)
+//                                for (i in 0 until points.size - 1) {
+//                                    val current = points[i]
+//                                    val next = points[i + 1]
+//                                    val cp1X = current.first + (next.first - current.first) / 3
+//                                    val cp2X = current.first + 2 * (next.first - current.first) / 3
+//                                    cubicTo(cp1X, current.second, cp2X, next.second, next.first, next.second)
+//                                }
+//                            }
+//                            drawPath(
+//                                path = linePath,
+//                                color = Color(0xFF3B82F6),
+//                                style = Stroke(width = 3.dp.toPx(), cap = StrokeCap.Round)
+//                            )
+//                        }
+//                        points.forEach { point ->
+//                            drawCircle(
+//                                color = Color.White,
+//                                radius = 8.dp.toPx(),
+//                                center = androidx.compose.ui.geometry.Offset(point.first, point.second)
+//                            )
+//                            drawCircle(
+//                                color = Color(0xFF3B82F6),
+//                                radius = 5.dp.toPx(),
+//                                center = androidx.compose.ui.geometry.Offset(point.first, point.second)
+//                            )
+//                        }
+//                    }
+//                }
+//
+//                Spacer(modifier = Modifier.height(16.dp))
+//
+//                Row(
+//                    modifier = Modifier.fillMaxWidth(),
+//                    horizontalArrangement = Arrangement.SpaceBetween
+//                ) {
+//                    // render label từ revenueData (đảm bảo giữ thứ tự)
+//                    revenueData.keys.forEachIndexed { index, label ->
+//                        Text(
+//                            text = label,
+//                            fontSize = 12.sp,
+//                            color = Color(0xFF6B7280),
+//                            fontWeight = FontWeight.Medium,
+//                            modifier = Modifier.weight(1f),
+//                            textAlign = when (index) {
+//                                0 -> TextAlign.Start
+//                                revenueData.size - 1 -> TextAlign.End
+//                                else -> TextAlign.Center
+//                            }
+//                        )
+//                    }
+//                }
+//            }
+//        }
+//    }
+//}
 
 @Composable
 fun StatBox(label: String, value: String, color: Color) {

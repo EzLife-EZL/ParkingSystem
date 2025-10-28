@@ -67,6 +67,7 @@ private val DarkColorScheme = darkColorScheme(
     surfaceVariant = BoxLightGrey,
     errorContainer = LightRedCustom,
     outlineVariant = AmberCustom,
+    surfaceTint = DarkTheme
 )
 
 private val LightColorScheme = lightColorScheme(
@@ -93,6 +94,7 @@ private val LightColorScheme = lightColorScheme(
     surfaceVariant = MidGrayCustom,
     errorContainer = LightRedCustom,
     outlineVariant = AmberCustom,
+    surfaceTint =LightTheme
 )
 
 @Composable
