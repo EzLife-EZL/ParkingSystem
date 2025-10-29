@@ -18,10 +18,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.parkingSystem.parkingSystem.user.home.startscreen.SignIn
-import com.parkingSystem.parkingSystem.user.personal.SectionSetting
 import com.parkingSystem.parkingSystem.R
 
-// ============ STAFF HISTORY SCREEN ============
 @Composable
 fun StaffHistoryScreen() {
     LazyColumn(

@@ -17,6 +17,7 @@ import com.parkingSystem.parkingSystem.responsemodel.Park
 import com.parkingSystem.parkingSystem.responsemodel.ParkingOverview
 import com.parkingSystem.parkingSystem.responsemodel.RevenueReport
 import com.parkingSystem.parkingSystem.responsemodel.RevenueResponse
+import com.parkingSystem.parkingSystem.responsemodel.RevenueVehicleType
 import com.parkingSystem.parkingSystem.responsemodel.Slot
 import com.parkingSystem.parkingSystem.retrofit.RetrofitInstance
 import kotlinx.coroutines.Dispatchers
@@ -466,7 +467,6 @@ class ParkingViewModel(private val sharedPreferences: SharedPreferences) : ViewM
                     println("Revenue Report API response: $responseBody")
 
                     if (responseBody != null) {
-                        // Parse JSON response
                         val report = Gson().fromJson(responseBody, RevenueReport::class.java)
                         _revenueReport.value = report
                         println("Parsed revenue report: $report")
@@ -488,6 +488,7 @@ class ParkingViewModel(private val sharedPreferences: SharedPreferences) : ViewM
         }
     }
 
+
     fun getRevenueByVehicleType() {
         viewModelScope.launch {
             _isLoading.value = true
@@ -501,12 +502,65 @@ class ParkingViewModel(private val sharedPreferences: SharedPreferences) : ViewM
                     println("Revenue by Vehicle Type API response: $responseBody")
 
                     if (responseBody != null) {
-                        // Parse JSON response
-                        val revenueData = Gson().fromJson(responseBody, RevenueResponse::class.java)
-                        _revenueByVehicleType.value = revenueData
-                        println("Parsed revenue by vehicle type: $revenueData")
-                        println("Labels: ${revenueData.labels}")
-                        println("Series count: ${revenueData.series.size}")
+                        val gson = Gson()
+                        val raw = gson.fromJson(responseBody, Map::class.java)
+                        val labelsAny = raw["labels"] as? List<*>
+                        val labels: List<String> = labelsAny?.map { it.toString() } ?: emptyList()
+                        val seriesAny = raw["series"] as? List<*>
+
+                        val fixedSeries: List<RevenueVehicleType> = seriesAny?.map { vehicleAny ->
+                            val vehicleMap = vehicleAny as Map<*, *>
+                            val typeVehicleRaw = vehicleMap["type_vehicle"]?.toString() ?: ""
+                            val dataAny = vehicleMap["data"] as? List<*>
+                            val dataList: List<Double> = dataAny?.map { (it as Number).toDouble() } ?: emptyList()
+
+                            val totalBookings =
+                                (vehicleMap["totalBookings"] as? Number)?.toInt() ?: 0
+                            val paidBookings =
+                                (vehicleMap["paidBookings"] as? Number)?.toInt() ?: 0
+                            val lastNonZeroIndex = dataList.indexOfLast { it != 0.0 }
+
+                            val currentMonthValue = if (lastNonZeroIndex >= 0) {
+                                dataList[lastNonZeroIndex]
+                            } else {
+                                0.0
+                            }
+
+                            val prevMonthValue = if (lastNonZeroIndex > 0) {
+                                dataList[lastNonZeroIndex - 1]
+                            } else {
+                                0.0
+                            }
+
+                            val growthPercent = if (prevMonthValue > 0.0) {
+                                ((currentMonthValue - prevMonthValue) / prevMonthValue) * 100.0
+                            } else if (currentMonthValue > 0.0) {
+                                100.0
+                            } else {
+                                0.0
+                            }
+
+                            RevenueVehicleType(
+                                typeVehicle = typeVehicleRaw,
+                                currentMonth = currentMonthValue,
+                                lastMonth = prevMonthValue,
+                                growth = growthPercent,
+                                totalBookings = totalBookings,
+                                paidBookings = paidBookings,
+                                months = dataList
+                            )
+                        } ?: emptyList()
+
+                        val fixedResponse = RevenueResponse(
+                            labels = labels,
+                            series = fixedSeries
+                        )
+
+                        _revenueByVehicleType.value = fixedResponse
+
+                        println("Parsed revenue by vehicle type (FIXED): $fixedResponse")
+                        println("Labels: ${fixedResponse.labels}")
+                        println("Series count: ${fixedResponse.series.size}")
                     } else {
                         _error.value = "Response body is null"
                         println("Response body is null")
@@ -526,4 +580,5 @@ class ParkingViewModel(private val sharedPreferences: SharedPreferences) : ViewM
             }
         }
     }
+
 }

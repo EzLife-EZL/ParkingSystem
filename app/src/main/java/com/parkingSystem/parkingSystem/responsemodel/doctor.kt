@@ -112,14 +112,6 @@ fun TimeSlot.isAvailable(): Boolean {
     return true
 }
 
-data class CreateParkingRequest(
-    val park_name: String,
-    val address: String,
-    val type_vehicle: String,
-    val price: Double,
-    val slots: List<Slot>
-)
-
 data class CreateSlotEnvelope(
     val path: String,          // example: "park"
     val data: SlotData
@@ -161,17 +153,16 @@ data class PeriodData(
     val label: String
 )
 
-data class RevenueVehicleType(
-    val typeVehicle: String = "",
-    val currentMonth: Double = 0.0,
-    val lastMonth: Double = 0.0,
-    val growth: Double = 0.0,
-    val totalBookings: Int = 0,
-    val paidBookings: Int = 0,
-    val months: List<Double> = emptyList(),
-)
-
 data class RevenueResponse(
-    val labels: List<String> = emptyList(),
-    val series: List<RevenueVehicleType> = emptyList()
+    val labels: List<String>,
+    val series: List<RevenueVehicleType>
+)
+data class RevenueVehicleType(
+    val typeVehicle: String,
+    val currentMonth: Double,
+    val lastMonth: Double,
+    val growth: Double,
+    val totalBookings: Int,
+    val paidBookings: Int,
+    val months: List<Double>
 )

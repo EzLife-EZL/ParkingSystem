@@ -1,8 +1,10 @@
 package com.parkingSystem.parkingSystem.admin
 
 import android.content.Context
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -21,6 +23,7 @@ import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -30,6 +33,7 @@ import androidx.compose.ui.unit.sp
 import com.parkingSystem.parkingSystem.R
 import com.parkingSystem.parkingSystem.ui.theme.LocalGradientTheme
 import com.parkingSystem.parkingSystem.viewmodel.ParkingViewModel
+import kotlin.math.abs
 
 @Preview(showBackground = true)
 @Composable
@@ -57,7 +61,6 @@ fun AdminDashboardScreen() {
     val error by parkingViewModel.error.collectAsState()
     val revenueReport by parkingViewModel.revenueReport.collectAsState()
     val revenueData by parkingViewModel.revenueByVehicleType.collectAsState()
-
 
     LazyColumn(
         modifier = Modifier
@@ -114,7 +117,8 @@ fun AdminDashboardScreen() {
                 else -> {
                     ParkingLotStatusSection(overview = overview)
                     Spacer(modifier = Modifier.height(16.dp))
-                    RevenueReportScreen(revenueReport = revenueReport,
+                    RevenueReportScreen(
+                        revenueReport = revenueReport,
                         onPeriodChange = { period ->
                             parkingViewModel.getRevenueReport(period.lowercase())
                         }
@@ -344,7 +348,7 @@ fun RevenueReportScreen(
                 // Current Period
                 Column {
                     Text(
-                        revenueReport?.currentPeriod?.label ?: "This Month",
+                        revenueReport?.currentPeriod?.label ?: "This Period",
                         color = Color(0xFF718096),
                         fontSize = 13.sp,
                         fontWeight = FontWeight.Medium
@@ -359,7 +363,7 @@ fun RevenueReportScreen(
                         )
                         Spacer(modifier = Modifier.width(8.dp))
 
-                        // Growth Badge
+                        // Growth badge mini
                         revenueReport?.let { report ->
                             val bgColor = if (report.isPositiveGrowth) Color(0xFFD1FAE5) else Color(0xFFFEE2E2)
                             val textColor = if (report.isPositiveGrowth) Color(0xFF059669) else Color(0xFFDC2626)
@@ -384,7 +388,7 @@ fun RevenueReportScreen(
                 // Previous Period
                 Column(horizontalAlignment = Alignment.End) {
                     Text(
-                        revenueReport?.previousPeriod?.label ?: "Last Month",
+                        revenueReport?.previousPeriod?.label ?: "Last Period",
                         color = Color(0xFF718096),
                         fontSize = 13.sp,
                         fontWeight = FontWeight.Medium
@@ -403,12 +407,13 @@ fun RevenueReportScreen(
             Divider(color = Color(0xFFE2E8F0), thickness = 1.dp)
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Comparison Text
+            // Comparison Text + Trend Chart
             revenueReport?.let { report ->
                 val bgColor = if (report.isPositiveGrowth) Color(0xFFF0FDF4) else Color(0xFFFEF2F2)
                 val textColor = if (report.isPositiveGrowth) Color(0xFF059669) else Color(0xFFDC2626)
                 val arrow = if (report.isPositiveGrowth) "↑" else "↓"
 
+                // summary row
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier
@@ -429,8 +434,227 @@ fun RevenueReportScreen(
                         fontSize = 14.sp
                     )
                 }
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                // Build data cho mini chart: previous vs current
+                val chartData = listOf(
+                    report.previousPeriod.label to report.previousPeriod.amount.toFloat(),
+                    report.currentPeriod.label to report.currentPeriod.amount.toFloat()
+                )
+
+                val valuesOnly = chartData.map { it.second }
+                val yMin = 0f
+                val rawMax = valuesOnly.maxOrNull() ?: 1f
+                val yMax = if (rawMax == 0f) 1f else rawMax
+
+                val yTicks = 4
+                val yTickValues = (0..yTicks).map { step ->
+                    val ratio = step / yTicks.toFloat()
+                    yMin + (yMax - yMin) * (1f - ratio)
+                }
+
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(200.dp)
+                        .background(Color.White, shape = RoundedCornerShape(16.dp))
+                        .border(
+                            width = 1.dp,
+                            color = Color(0xFFE5E7EB),
+                            shape = RoundedCornerShape(16.dp)
+                        )
+                        .padding(16.dp)
+                ) {
+                    Row(modifier = Modifier.fillMaxSize()) {
+
+                        // Y-axis labels
+                        Column(
+                            modifier = Modifier
+                                .fillMaxHeight()
+                                .width(40.dp),
+                            verticalArrangement = Arrangement.SpaceBetween,
+                            horizontalAlignment = Alignment.End
+                        ) {
+                            yTickValues.forEach { tickValue ->
+                                Text(
+                                    text = String.format("%,.0f", tickValue),
+                                    fontSize = 10.sp,
+                                    color = Color(0xFF9CA3AF),
+                                    fontWeight = FontWeight.Medium,
+                                    maxLines = 1
+                                )
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.width(8.dp))
+
+                        // Chart box
+                        Box(
+                            modifier = Modifier
+                                .weight(1f)
+                                .fillMaxHeight()
+                                .background(Color(0xFFFAFAFA), shape = RoundedCornerShape(12.dp))
+                                .padding(12.dp)
+                        ) {
+                            Canvas(modifier = Modifier.fillMaxSize()) {
+                                val graphWidth = size.width
+                                val graphHeight = size.height
+
+                                val points = chartData.mapIndexed { index, (_, value) ->
+                                    val x = if (chartData.size > 1) {
+                                        (graphWidth / (chartData.size - 1)) * index
+                                    } else {
+                                        graphWidth / 2f
+                                    }
+
+                                    val normalized = if (yMax - yMin > 0f) {
+                                        (value - yMin) / (yMax - yMin)
+                                    } else {
+                                        0.5f
+                                    }
+
+                                    val y = graphHeight -
+                                            (graphHeight * 0.15f) -
+                                            (normalized * graphHeight * 0.7f)
+
+                                    x to y
+                                }
+
+
+                                for (i in 0..yTicks) {
+                                    val ratio = i / yTicks.toFloat()
+                                    val yLine = graphHeight * 0.15f + (graphHeight * 0.7f) * ratio
+                                    val yCanvas = graphHeight - yLine
+
+                                    drawLine(
+                                        color = Color(0xFFE5E7EB),
+                                        start = androidx.compose.ui.geometry.Offset(0f, yCanvas),
+                                        end = androidx.compose.ui.geometry.Offset(graphWidth, yCanvas),
+                                        strokeWidth = 1.dp.toPx()
+                                    )
+                                }
+                                if (points.size > 1) {
+                                    val p0 = points[0]
+                                    val p1 = points[1]
+
+                                    val growthColor = if (report.isPositiveGrowth) {
+                                        Color(0xFF10B981)
+                                    } else {
+                                        Color(0xFFEF4444)
+                                    }
+                                    val fillPath = Path().apply {
+                                        moveTo(p0.first, graphHeight)
+                                        lineTo(p0.first, p0.second)
+                                        lineTo(p1.first, p1.second)
+                                        lineTo(p1.first, graphHeight)
+                                        close()
+                                    }
+                                    drawPath(
+                                        path = fillPath,
+                                        brush = Brush.verticalGradient(
+                                            colors = listOf(
+                                                growthColor.copy(alpha = 0.28f),
+                                                growthColor.copy(alpha = 0.05f)
+                                            )
+                                        )
+                                    )
+
+                                    // line nối 2 period
+                                    drawLine(
+                                        color = growthColor,
+                                        start = androidx.compose.ui.geometry.Offset(p0.first, p0.second),
+                                        end = androidx.compose.ui.geometry.Offset(p1.first, p1.second),
+                                        strokeWidth = 3.dp.toPx(),
+                                        cap = StrokeCap.Round
+                                    )
+                                }
+
+                                // vẽ chấm data
+                                val pointColor = if (report.isPositiveGrowth) {
+                                    Color(0xFF10B981)
+                                } else {
+                                    Color(0xFFEF4444)
+                                }
+
+                                points.forEach { (x, y) ->
+                                    // vòng trắng ngoài
+                                    drawCircle(
+                                        color = Color.White,
+                                        radius = 8.dp.toPx(),
+                                        center = androidx.compose.ui.geometry.Offset(x, y)
+                                    )
+                                    // chấm màu
+                                    drawCircle(
+                                        color = pointColor,
+                                        radius = 5.dp.toPx(),
+                                        center = androidx.compose.ui.geometry.Offset(x, y)
+                                    )
+                                }
+                            }
+
+                            // tooltip tổng quát Peak (không gắn đúng toạ độ point để tránh phức tạp)
+                            val maxValueIndex = valuesOnly.indexOfFirst { it == yMax }
+                            if (maxValueIndex >= 0 && yMax > 0f) {
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxSize(),
+                                    contentAlignment = Alignment.TopStart
+                                ) {
+                                    Column(
+                                        modifier = Modifier
+                                            .padding(8.dp)
+                                            .background(
+                                                Color(0xFF1F2937),
+                                                shape = RoundedCornerShape(8.dp)
+                                            )
+                                            .padding(horizontal = 8.dp, vertical = 6.dp)
+                                    ) {
+                                        Text(
+                                            text = "Peak",
+                                            color = Color.White.copy(alpha = 0.8f),
+                                            fontSize = 10.sp,
+                                            fontWeight = FontWeight.Medium
+                                        )
+                                        Text(
+                                            text = String.format("%,.0f", yMax),
+                                            color = Color.White,
+                                            fontSize = 14.sp,
+                                            fontWeight = FontWeight.SemiBold
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                // Nhãn X (previous vs current)
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 8.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    chartData.forEachIndexed { index, (label, _) ->
+                        Text(
+                            text = label,
+                            fontSize = 11.sp,
+                            color = Color(0xFF6B7280),
+                            fontWeight = FontWeight.Medium,
+                            textAlign = when (index) {
+                                0 -> TextAlign.Start
+                                chartData.size - 1 -> TextAlign.End
+                                else -> TextAlign.Center
+                            },
+                            modifier = Modifier.weight(1f)
+                        )
+                    }
+                }
             } ?: run {
-                // Default when no data
+                // fallback nếu không có report
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier
@@ -455,10 +679,33 @@ fun RevenueReportScreen(
         }
     }
 }
-
 @Composable
-fun VehicleTypeRevenueCard(revenueData: com.parkingSystem.parkingSystem.responsemodel.RevenueResponse?) {
-    var selectedFilter by remember { mutableStateOf("Bike") }
+fun VehicleTypeRevenueCard(
+    revenueData: com.parkingSystem.parkingSystem.responsemodel.RevenueResponse?
+) {
+    // Bỏ "Unknown"
+    fun List<com.parkingSystem.parkingSystem.responsemodel.RevenueVehicleType>.visibleSeries():
+            List<com.parkingSystem.parkingSystem.responsemodel.RevenueVehicleType> {
+        return this.filter { !it.typeVehicle.equals("Unknown", ignoreCase = true) }
+    }
+
+    var selectedFilter by remember { mutableStateOf("") }
+
+    // chọn default ban đầu (ví dụ "Bike")
+    LaunchedEffect(revenueData) {
+        if (
+            revenueData != null &&
+            revenueData.series.isNotEmpty() &&
+            selectedFilter.isEmpty()
+        ) {
+            val cleanList = revenueData.series.visibleSeries()
+            selectedFilter = if (cleanList.isNotEmpty()) {
+                cleanList.first().typeVehicle
+            } else {
+                ""
+            }
+        }
+    }
 
     Card(
         modifier = Modifier
@@ -475,26 +722,41 @@ fun VehicleTypeRevenueCard(revenueData: com.parkingSystem.parkingSystem.response
         Column(
             modifier = Modifier.padding(20.dp)
         ) {
-            // Header với dropdown filter
+            // ===== HEADER =====
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(
-                    "Revenue by Vehicle Type",
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 20.sp,
-                    color = Color(0xFF2D3748)
-                )
+                Column {
+                    Text(
+                        "Revenue by Vehicle Type",
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 20.sp,
+                        color = Color(0xFF2D3748)
+                    )
+                    Spacer(modifier = Modifier.height(2.dp))
+                    Text(
+                        text = if (selectedFilter.isNotEmpty()) selectedFilter else "No vehicle type",
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = Color(0xFF6B7280)
+                    )
+                }
 
-                // Dropdown với các loại xe từ API
+                // dropdown chỉ show loại hợp lệ (không có "Unknown")
                 revenueData?.let { data ->
-                    val vehicleTypes = data.series.map { it.typeVehicle }
-                    if (vehicleTypes.isNotEmpty()) {
+                    val visibleTypes = data.series
+                        .map { it.typeVehicle }
+                        .filter { !it.equals("Unknown", ignoreCase = true) }
+
+                    if (visibleTypes.isNotEmpty()) {
                         FilterDropdown(
-                            options = vehicleTypes,
-                            selectedOption = selectedFilter,
+                            options = visibleTypes,
+                            selectedOption = if (selectedFilter.isNotEmpty())
+                                selectedFilter
+                            else
+                                visibleTypes.first(),
                             onOptionSelected = { selectedFilter = it }
                         )
                     }
@@ -503,42 +765,56 @@ fun VehicleTypeRevenueCard(revenueData: com.parkingSystem.parkingSystem.response
 
             Spacer(modifier = Modifier.height(20.dp))
 
-            // Lấy dữ liệu của vehicle type được chọn
-            val selectedVehicleData = revenueData?.series?.find {
-                it.typeVehicle.equals(selectedFilter, ignoreCase = true)
-            }
+            // ===== CHỌN SERIES THEO LOẠI XE =====
+            val selectedVehicleData =
+                revenueData?.let { data ->
+                    val validSeries = data.series.visibleSeries()
+                    if (validSeries.isEmpty()) {
+                        null
+                    } else {
+                        validSeries.find {
+                            it.typeVehicle.equals(selectedFilter, ignoreCase = true)
+                        } ?: validSeries.first()
+                    }
+                }
 
             selectedVehicleData?.let { vehicleData ->
-                // Tạo map dữ liệu từ labels và months
-                val chartData = revenueData.labels.mapIndexed { index, label ->
-                    label to (vehicleData.months.getOrNull(index)?.toFloat() ?: 0f)
-                }.toMap()
+                val chartData: List<Pair<String, Float>> =
+                    revenueData!!.labels.mapIndexed { index, label ->
+                        val valueFloat = (vehicleData.months.getOrNull(index) ?: 0.0).toFloat()
+                        label to valueFloat
+                    }
 
-                val totalRevenue = chartData.values.sum()
-                val avgRevenue = if (chartData.isNotEmpty()) totalRevenue / chartData.size else 0f
-                val maxValue = chartData.values.maxOrNull() ?: 1f
-                val minValue = chartData.values.minOrNull() ?: 0f
 
-                // Statistics Row
+                val valuesOnly = chartData.map { it.second }
+                val totalRevenue = valuesOnly.sum()
+                val avgRevenue = if (valuesOnly.isNotEmpty()) {
+                    totalRevenue / valuesOnly.size
+                } else 0f
+
+                val maxValue = valuesOnly.maxOrNull() ?: 0f
+                val minValue = valuesOnly.minOrNull() ?: 0f
+                val range = (maxValue - minValue).let { if (it == 0f) 1f else it }
+
+                val maxIndex = valuesOnly.indexOfFirst { it == maxValue }.coerceAtLeast(0)
+
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     StatBox(
                         label = "Total Revenue",
-                        value = "${String.format("%,.0f", totalRevenue)}",
+                        value = String.format("%,.0f", totalRevenue),
                         color = Color(0xFF3B82F6)
                     )
                     StatBox(
-                        label = "Average",
-                        value = "${String.format("%,.0f", avgRevenue)}",
+                        label = "Average / mo",
+                        value = String.format("%,.0f", avgRevenue),
                         color = Color(0xFF10B981)
                     )
                 }
 
                 Spacer(modifier = Modifier.height(16.dp))
-
-                // Additional Stats
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween
@@ -589,10 +865,10 @@ fun VehicleTypeRevenueCard(revenueData: com.parkingSystem.parkingSystem.response
                 }
 
                 Spacer(modifier = Modifier.height(16.dp))
-
-                // Growth indicator
-                val growthColor = if (vehicleData.growth >= 0) Color(0xFF10B981) else Color(0xFFEF4444)
-                val growthBgColor = if (vehicleData.growth >= 0) Color(0xFFD1FAE5) else Color(0xFFFEE2E2)
+                val growthColor =
+                    if (vehicleData.growth >= 0) Color(0xFF10B981) else Color(0xFFEF4444)
+                val growthBgColor =
+                    if (vehicleData.growth >= 0) Color(0xFFD1FAE5) else Color(0xFFFEE2E2)
                 val growthArrow = if (vehicleData.growth >= 0) "↑" else "↓"
 
                 Row(
@@ -603,7 +879,7 @@ fun VehicleTypeRevenueCard(revenueData: com.parkingSystem.parkingSystem.response
                         .padding(12.dp)
                 ) {
                     Text(
-                        text = "$growthArrow ${String.format("%.1f", Math.abs(vehicleData.growth))}%",
+                        text = "$growthArrow ${String.format("%.1f", abs(vehicleData.growth))}%",
                         color = growthColor,
                         fontWeight = FontWeight.Bold,
                         fontSize = 16.sp
@@ -617,120 +893,240 @@ fun VehicleTypeRevenueCard(revenueData: com.parkingSystem.parkingSystem.response
                 }
 
                 Spacer(modifier = Modifier.height(24.dp))
-
-                // Chart
-                Box(
+                Card(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(220.dp)
-                        .background(Color(0xFFFAFAFA), shape = RoundedCornerShape(12.dp))
-                        .padding(16.dp)
+                        .height(260.dp),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color.White),
+                    border = BorderStroke(1.dp, Color(0xFFE5E7EB))
                 ) {
-                    Canvas(modifier = Modifier.fillMaxSize()) {
-                        val range = maxValue - minValue
-                        val points = chartData.values.mapIndexed { index, value ->
-                            val x = if (chartData.size > 1) {
-                                (size.width / (chartData.size - 1)) * index
-                            } else size.width / 2
-                            val normalizedValue = if (range > 0) (value - minValue) / range else 0.5f
-                            val y = size.height - (size.height * 0.15f) - (normalizedValue * size.height * 0.7f)
-                            Pair(x, y)
-                        }
-
-                        // Grid lines
-                        for (i in 0..4) {
-                            val y = size.height * (i / 4f)
-                            drawLine(
-                                color = Color(0xFFE5E7EB),
-                                start = androidx.compose.ui.geometry.Offset(0f, y),
-                                end = androidx.compose.ui.geometry.Offset(size.width, y),
-                                strokeWidth = 1.dp.toPx()
-                            )
-                        }
-
-                        if (points.size > 1) {
-                            // Gradient fill
-                            val gradientPath = Path().apply {
-                                moveTo(0f, size.height)
-                                lineTo(points.first().first, points.first().second)
-                                for (i in 0 until points.size - 1) {
-                                    val current = points[i]
-                                    val next = points[i + 1]
-                                    val cp1X = current.first + (next.first - current.first) / 3
-                                    val cp2X = current.first + 2 * (next.first - current.first) / 3
-                                    cubicTo(cp1X, current.second, cp2X, next.second, next.first, next.second)
-                                }
-                                lineTo(size.width, size.height)
-                                close()
+                    Column(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(16.dp)
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .weight(1f)
+                                .fillMaxWidth()
+                        ) {
+                            val yTickCount = 4
+                            val yTicks: List<Float> = (0..yTickCount).map { step ->
+                                val ratio = step / yTickCount.toFloat()
+                                (maxValue - ratio * (maxValue - minValue)).toFloat()
                             }
-                            drawPath(
-                                path = gradientPath,
-                                brush = Brush.verticalGradient(
-                                    colors = listOf(
-                                        Color(0xFF3B82F6).copy(alpha = 0.3f),
-                                        Color(0xFF3B82F6).copy(alpha = 0.05f)
+
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxHeight()
+                                    .width(44.dp),
+                                verticalArrangement = Arrangement.SpaceBetween,
+                                horizontalAlignment = Alignment.End
+                            ) {
+                                yTicks.forEach { tickVal ->
+                                    Text(
+                                        text = String.format("%,.0f", tickVal.toDouble()),
+                                        fontSize = 10.sp,
+                                        fontWeight = FontWeight.Medium,
+                                        color = Color(0xFF9CA3AF),
+                                        maxLines = 1
                                     )
-                                )
-                            )
-
-                            // Line path
-                            val linePath = Path().apply {
-                                moveTo(points.first().first, points.first().second)
-                                for (i in 0 until points.size - 1) {
-                                    val current = points[i]
-                                    val next = points[i + 1]
-                                    val cp1X = current.first + (next.first - current.first) / 3
-                                    val cp2X = current.first + 2 * (next.first - current.first) / 3
-                                    cubicTo(cp1X, current.second, cp2X, next.second, next.first, next.second)
                                 }
                             }
-                            drawPath(
-                                path = linePath,
-                                color = Color(0xFF3B82F6),
-                                style = Stroke(width = 3.dp.toPx(), cap = StrokeCap.Round)
-                            )
-                        }
 
-                        // Data points
-                        points.forEach { point ->
-                            drawCircle(
-                                color = Color.White,
-                                radius = 8.dp.toPx(),
-                                center = androidx.compose.ui.geometry.Offset(point.first, point.second)
-                            )
-                            drawCircle(
-                                color = Color(0xFF3B82F6),
-                                radius = 5.dp.toPx(),
-                                center = androidx.compose.ui.geometry.Offset(point.first, point.second)
-                            )
-                        }
-                    }
-                }
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Box(
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .fillMaxHeight()
+                                    .background(
+                                        Color(0xFFFAFAFA),
+                                        RoundedCornerShape(12.dp)
+                                    )
+                                    .padding(12.dp)
+                            ) {
+                                Canvas(
+                                    modifier = Modifier.fillMaxSize()
+                                ) {
+                                    val w = size.width
+                                    val h = size.height
+                                    val points: List<Pair<Float, Float>> =
+                                        chartData.mapIndexed { index, (_, value) ->
+                                            val x = if (chartData.size > 1) {
+                                                (w / (chartData.size - 1)) * index
+                                            } else {
+                                                w / 2f
+                                            }
+                                            val norm = (value - minValue) / range
+                                            val usableHeight = h * 0.7f
+                                            val topOffset = h * 0.15f
+                                            val y = h - (topOffset + norm * usableHeight)
 
-                Spacer(modifier = Modifier.height(16.dp))
+                                            x to y
+                                        }
+                                    (0..yTickCount).forEach { i ->
+                                        val ratio = i / yTickCount.toFloat()
+                                        val yLine = h * 0.15f + (h * 0.7f) * ratio
+                                        val yCanvas = h - yLine
 
-                // X-axis labels
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    chartData.keys.forEachIndexed { index, label ->
-                        Text(
-                            text = label,
-                            fontSize = 12.sp,
-                            color = Color(0xFF6B7280),
-                            fontWeight = FontWeight.Medium,
-                            modifier = Modifier.weight(1f),
-                            textAlign = when (index) {
-                                0 -> TextAlign.Start
-                                chartData.size - 1 -> TextAlign.End
-                                else -> TextAlign.Center
+                                        drawLine(
+                                            color = Color(0xFFE5E7EB),
+                                            start = androidx.compose.ui.geometry.Offset(
+                                                0f,
+                                                yCanvas
+                                            ),
+                                            end = androidx.compose.ui.geometry.Offset(
+                                                w,
+                                                yCanvas
+                                            ),
+                                            strokeWidth = 1.dp.toPx()
+                                        )
+                                    }
+                                    if (points.size > 1) {
+                                        val lineColor = Color(0xFF3B82F6)
+                                        val areaPath = Path().apply {
+                                            moveTo(points.first().first, h)
+                                            lineTo(points.first().first, points.first().second)
+
+                                            for (i in 0 until points.size - 1) {
+                                                val current = points[i]
+                                                val next = points[i + 1]
+                                                val cp1X = current.first + (next.first - current.first) / 3f
+                                                val cp2X = current.first + 2f * (next.first - current.first) / 3f
+                                                cubicTo(
+                                                    cp1X, current.second,
+                                                    cp2X, next.second,
+                                                    next.first, next.second
+                                                )
+                                            }
+
+                                            lineTo(points.last().first, h)
+                                            close()
+                                        }
+
+                                        drawPath(
+                                            path = areaPath,
+                                            brush = Brush.verticalGradient(
+                                                colors = listOf(
+                                                    lineColor.copy(alpha = 0.28f),
+                                                    lineColor.copy(alpha = 0.05f)
+                                                )
+                                            )
+                                        )
+
+                                        // Path line chính
+                                        val linePath = Path().apply {
+                                            moveTo(points.first().first, points.first().second)
+                                            for (i in 0 until points.size - 1) {
+                                                val current = points[i]
+                                                val next = points[i + 1]
+                                                val cp1X = current.first + (next.first - current.first) / 3f
+                                                val cp2X = current.first + 2f * (next.first - current.first) / 3f
+                                                cubicTo(
+                                                    cp1X, current.second,
+                                                    cp2X, next.second,
+                                                    next.first, next.second
+                                                )
+                                            }
+                                        }
+
+                                        drawPath(
+                                            path = linePath,
+                                            color = lineColor,
+                                            style = Stroke(
+                                                width = 3.dp.toPx(),
+                                                cap = StrokeCap.Round
+                                            )
+                                        )
+                                    }
+
+                                    // Vẽ chấm cho từng điểm
+                                    points.forEachIndexed { idx, (x, y) ->
+                                        // vòng trắng
+                                        drawCircle(
+                                            color = Color.White,
+                                            radius = 8.dp.toPx(),
+                                            center = androidx.compose.ui.geometry.Offset(x, y)
+                                        )
+                                        // chấm màu: điểm peak (max) sẽ xanh đậm, còn lại xám
+                                        val dotColor =
+                                            if (idx == maxIndex) Color(0xFF3B82F6)
+                                            else Color(0xFF9CA3AF)
+                                        drawCircle(
+                                            color = dotColor,
+                                            radius = 5.dp.toPx(),
+                                            center = androidx.compose.ui.geometry.Offset(x, y)
+                                        )
+                                    }
+                                }
+
+                                // Tooltip "Peak" cố định trên góc cao để tránh offset phức tạp
+                                if (maxValue > 0f) {
+                                    Box(
+                                        modifier = Modifier.fillMaxSize(),
+                                        contentAlignment = Alignment.TopStart
+                                    ) {
+                                        Column(
+                                            modifier = Modifier
+                                                .background(
+                                                    Color(0xFF1F2937),
+                                                    shape = RoundedCornerShape(8.dp)
+                                                )
+                                                .padding(horizontal = 8.dp, vertical = 6.dp)
+                                        ) {
+                                            Text(
+                                                text = "Peak",
+                                                color = Color.White.copy(alpha = 0.8f),
+                                                fontSize = 10.sp,
+                                                fontWeight = FontWeight.Medium
+                                            )
+                                            Text(
+                                                text = String.format("%,.0f", maxValue.toDouble()),
+                                                color = Color.White,
+                                                fontSize = 14.sp,
+                                                fontWeight = FontWeight.SemiBold
+                                            )
+                                        }
+                                    }
+                                }
                             }
-                        )
+                        }
+
+                        Spacer(modifier = Modifier.height(12.dp))
+
+                        // ==== TRỤC X (THÁNG) ====
+                        // để tránh chữ dày đặc, chỉ show 3 mốc: đầu / giữa / cuối
+                        val visibleLabelIndexes = listOf(
+                            0,
+                            chartData.size / 2,
+                            chartData.lastIndex
+                        ).distinct().sorted()
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            chartData.forEachIndexed { index, (label, _) ->
+                                val show = index in visibleLabelIndexes
+                                Text(
+                                    text = if (show) label else "",
+                                    fontSize = 11.sp,
+                                    color = Color(0xFF6B7280),
+                                    fontWeight = FontWeight.Medium,
+                                    textAlign = when (index) {
+                                        0 -> TextAlign.Start
+                                        chartData.size - 1 -> TextAlign.End
+                                        else -> TextAlign.Center
+                                    },
+                                    modifier = Modifier.weight(1f)
+                                )
+                            }
+                        }
                     }
                 }
             } ?: run {
-                // Hiển thị khi không có dữ liệu
+                // không có data hợp lệ (ví dụ BE chỉ trả "Unknown")
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -738,7 +1134,7 @@ fun VehicleTypeRevenueCard(revenueData: com.parkingSystem.parkingSystem.response
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = "No data available for $selectedFilter",
+                        text = "No data available",
                         color = Color(0xFF6B7280),
                         fontSize = 14.sp
                     )
@@ -747,6 +1143,8 @@ fun VehicleTypeRevenueCard(revenueData: com.parkingSystem.parkingSystem.response
         }
     }
 }
+
+
 
 @Composable
 fun StatBox(label: String, value: String, color: Color) {
