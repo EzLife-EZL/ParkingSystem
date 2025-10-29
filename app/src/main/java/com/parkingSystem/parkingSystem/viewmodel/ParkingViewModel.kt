@@ -16,6 +16,7 @@ import com.parkingSystem.parkingSystem.responsemodel.SlotDto
 import com.parkingSystem.parkingSystem.responsemodel.Park
 import com.parkingSystem.parkingSystem.responsemodel.ParkingOverview
 import com.parkingSystem.parkingSystem.responsemodel.RevenueReport
+import com.parkingSystem.parkingSystem.responsemodel.RevenueResponse
 import com.parkingSystem.parkingSystem.responsemodel.Slot
 import com.parkingSystem.parkingSystem.retrofit.RetrofitInstance
 import kotlinx.coroutines.Dispatchers
@@ -100,6 +101,9 @@ class ParkingViewModel(private val sharedPreferences: SharedPreferences) : ViewM
 
     private val _revenueReport = MutableStateFlow<RevenueReport?>(null)
     val revenueReport: StateFlow<RevenueReport?> = _revenueReport.asStateFlow()
+
+    private val _revenueByVehicleType = MutableStateFlow<RevenueResponse?>(null)
+    val revenueByVehicleType: StateFlow<RevenueResponse?> = _revenueByVehicleType.asStateFlow()
 
     fun fetchAllParksAvailable() {
         viewModelScope.launch {
@@ -480,6 +484,45 @@ class ParkingViewModel(private val sharedPreferences: SharedPreferences) : ViewM
                 e.printStackTrace()
             } finally {
                 _isLoading.value = false
+            }
+        }
+    }
+
+    fun getRevenueByVehicleType() {
+        viewModelScope.launch {
+            _isLoading.value = true
+            _error.value = null
+            try {
+                println("Fetching revenue by vehicle type")
+                val response = RetrofitInstance.parking.getRevenueByVehicleType()
+
+                if (response.isSuccessful) {
+                    val responseBody = response.body()?.string()
+                    println("Revenue by Vehicle Type API response: $responseBody")
+
+                    if (responseBody != null) {
+                        // Parse JSON response
+                        val revenueData = Gson().fromJson(responseBody, RevenueResponse::class.java)
+                        _revenueByVehicleType.value = revenueData
+                        println("Parsed revenue by vehicle type: $revenueData")
+                        println("Labels: ${revenueData.labels}")
+                        println("Series count: ${revenueData.series.size}")
+                    } else {
+                        _error.value = "Response body is null"
+                        println("Response body is null")
+                    }
+                } else {
+                    val errorBody = response.errorBody()?.string()
+                    println("Revenue by Vehicle Type API error: ${response.code()} - $errorBody")
+                    _error.value = "Không thể load revenue by vehicle type: ${response.code()}"
+                }
+            } catch (e: Exception) {
+                _error.value = "Lỗi: ${e.message}"
+                println("Exception in getRevenueByVehicleType: ${e.message}")
+                e.printStackTrace()
+            } finally {
+                _isLoading.value = false
+                println("Loading finished")
             }
         }
     }
