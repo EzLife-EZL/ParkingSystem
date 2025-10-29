@@ -11,6 +11,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.TrendingDown
+import androidx.compose.material.icons.filled.TrendingUp
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -683,7 +685,6 @@ fun RevenueReportScreen(
 fun VehicleTypeRevenueCard(
     revenueData: com.parkingSystem.parkingSystem.responsemodel.RevenueResponse?
 ) {
-    // Bỏ "Unknown"
     fun List<com.parkingSystem.parkingSystem.responsemodel.RevenueVehicleType>.visibleSeries():
             List<com.parkingSystem.parkingSystem.responsemodel.RevenueVehicleType> {
         return this.filter { !it.typeVehicle.equals("Unknown", ignoreCase = true) }
@@ -691,13 +692,8 @@ fun VehicleTypeRevenueCard(
 
     var selectedFilter by remember { mutableStateOf("") }
 
-    // chọn default ban đầu (ví dụ "Bike")
     LaunchedEffect(revenueData) {
-        if (
-            revenueData != null &&
-            revenueData.series.isNotEmpty() &&
-            selectedFilter.isEmpty()
-        ) {
+        if (revenueData != null && revenueData.series.isNotEmpty() && selectedFilter.isEmpty()) {
             val cleanList = revenueData.series.visibleSeries()
             selectedFilter = if (cleanList.isNotEmpty()) {
                 cleanList.first().typeVehicle
@@ -710,19 +706,19 @@ fun VehicleTypeRevenueCard(
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp)
+            .padding(horizontal = 20.dp)
             .shadow(
-                elevation = 4.dp,
-                shape = RoundedCornerShape(16.dp),
-                spotColor = Color.Black.copy(alpha = 0.08f)
+                elevation = 8.dp,
+                shape = RoundedCornerShape(20.dp),
+                spotColor = Color.Black.copy(alpha = 0.1f)
             ),
-        shape = RoundedCornerShape(16.dp),
+        shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(containerColor = Color.White)
     ) {
         Column(
-            modifier = Modifier.padding(20.dp)
+            modifier = Modifier.padding(24.dp)
         ) {
-            // ===== HEADER =====
+            // Header với icon
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -730,21 +726,21 @@ fun VehicleTypeRevenueCard(
             ) {
                 Column {
                     Text(
-                        "Revenue by Vehicle Type",
+                        "Revenue by\nVehicle Type",
                         fontWeight = FontWeight.Bold,
-                        fontSize = 20.sp,
-                        color = Color(0xFF2D3748)
+                        fontSize = 22.sp,
+                        color = Color(0xFF1E293B)
                     )
-                    Spacer(modifier = Modifier.height(2.dp))
+                    Spacer(modifier = Modifier.height(4.dp))
                     Text(
                         text = if (selectedFilter.isNotEmpty()) selectedFilter else "No vehicle type",
-                        fontSize = 13.sp,
-                        fontWeight = FontWeight.Medium,
-                        color = Color(0xFF6B7280)
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = Color(0xFF64748B),
+                        letterSpacing = 0.3.sp
                     )
                 }
 
-                // dropdown chỉ show loại hợp lệ (không có "Unknown")
                 revenueData?.let { data ->
                     val visibleTypes = data.series
                         .map { it.typeVehicle }
@@ -763,20 +759,18 @@ fun VehicleTypeRevenueCard(
                 }
             }
 
-            Spacer(modifier = Modifier.height(20.dp))
+            Spacer(modifier = Modifier.height(24.dp))
 
-            // ===== CHỌN SERIES THEO LOẠI XE =====
-            val selectedVehicleData =
-                revenueData?.let { data ->
-                    val validSeries = data.series.visibleSeries()
-                    if (validSeries.isEmpty()) {
-                        null
-                    } else {
-                        validSeries.find {
-                            it.typeVehicle.equals(selectedFilter, ignoreCase = true)
-                        } ?: validSeries.first()
-                    }
+            val selectedVehicleData = revenueData?.let { data ->
+                val validSeries = data.series.visibleSeries()
+                if (validSeries.isEmpty()) {
+                    null
+                } else {
+                    validSeries.find {
+                        it.typeVehicle.equals(selectedFilter, ignoreCase = true)
+                    } ?: validSeries.first()
                 }
+            }
 
             selectedVehicleData?.let { vehicleData ->
                 val chartData: List<Pair<String, Float>> =
@@ -785,387 +779,339 @@ fun VehicleTypeRevenueCard(
                         label to valueFloat
                     }
 
-
                 val valuesOnly = chartData.map { it.second }
                 val totalRevenue = valuesOnly.sum()
                 val avgRevenue = if (valuesOnly.isNotEmpty()) {
                     totalRevenue / valuesOnly.size
                 } else 0f
 
-                val maxValue = valuesOnly.maxOrNull() ?: 0f
-                val minValue = valuesOnly.minOrNull() ?: 0f
-                val range = (maxValue - minValue).let { if (it == 0f) 1f else it }
-
-                val maxIndex = valuesOnly.indexOfFirst { it == maxValue }.coerceAtLeast(0)
-
+                // Stats Grid với modern design
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    StatBox(
+                    ModernStatBox(
                         label = "Total Revenue",
                         value = String.format("%,.0f", totalRevenue),
-                        color = Color(0xFF3B82F6)
+                        color = Color(0xFF3B82F6),
+                        icon = "💰",
+                        modifier = Modifier.weight(1f)
                     )
-                    StatBox(
+                    ModernStatBox(
                         label = "Average / mo",
                         value = String.format("%,.0f", avgRevenue),
-                        color = Color(0xFF10B981)
+                        color = Color(0xFF10B981),
+                        icon = "📊",
+                        modifier = Modifier.weight(1f)
                     )
                 }
 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(12.dp))
+
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    Column(
-                        modifier = Modifier
-                            .weight(1f)
-                            .background(Color(0xFFF3F4F6), shape = RoundedCornerShape(12.dp))
-                            .padding(12.dp)
-                    ) {
-                        Text(
-                            "Total Bookings",
-                            color = Color(0xFF6B7280),
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.Medium
-                        )
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Text(
-                            text = vehicleData.totalBookings.toString(),
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 20.sp,
-                            color = Color(0xFF2D3748)
-                        )
-                    }
-
-                    Spacer(modifier = Modifier.width(12.dp))
-
-                    Column(
-                        modifier = Modifier
-                            .weight(1f)
-                            .background(Color(0xFFF3F4F6), shape = RoundedCornerShape(12.dp))
-                            .padding(12.dp)
-                    ) {
-                        Text(
-                            "Paid Bookings",
-                            color = Color(0xFF6B7280),
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.Medium
-                        )
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Text(
-                            text = vehicleData.paidBookings.toString(),
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 20.sp,
-                            color = Color(0xFF10B981)
-                        )
-                    }
+                    ModernStatBox(
+                        label = "Total Bookings",
+                        value = vehicleData.totalBookings.toString(),
+                        color = Color(0xFF8B5CF6),
+                        icon = "🎫",
+                        modifier = Modifier.weight(1f)
+                    )
+                    ModernStatBox(
+                        label = "Paid Bookings",
+                        value = vehicleData.paidBookings.toString(),
+                        color = Color(0xFFEC4899),
+                        icon = "✓",
+                        modifier = Modifier.weight(1f)
+                    )
                 }
 
-                Spacer(modifier = Modifier.height(16.dp))
-                val growthColor =
-                    if (vehicleData.growth >= 0) Color(0xFF10B981) else Color(0xFFEF4444)
-                val growthBgColor =
-                    if (vehicleData.growth >= 0) Color(0xFFD1FAE5) else Color(0xFFFEE2E2)
-                val growthArrow = if (vehicleData.growth >= 0) "↑" else "↓"
+                Spacer(modifier = Modifier.height(20.dp))
+
+                // Growth indicator
+                val growthColor = if (vehicleData.growth >= 0) Color(0xFF10B981) else Color(0xFFEF4444)
+                val growthBgColor = if (vehicleData.growth >= 0) Color(0xFFECFDF5) else Color(0xFFFEF2F2)
+                val growthIcon = if (vehicleData.growth >= 0) Icons.Default.TrendingUp else Icons.Default.TrendingDown
 
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .background(growthBgColor, shape = RoundedCornerShape(8.dp))
-                        .padding(12.dp)
+                        .background(growthBgColor, shape = RoundedCornerShape(12.dp))
+                        .padding(16.dp)
                 ) {
-                    Text(
-                        text = "$growthArrow ${String.format("%.1f", abs(vehicleData.growth))}%",
-                        color = growthColor,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 16.sp
+                    Icon(
+                        imageVector = growthIcon,
+                        contentDescription = null,
+                        tint = growthColor,
+                        modifier = Modifier.size(24.dp)
                     )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        "vs last month",
-                        color = Color(0xFF6B7280),
-                        fontSize = 14.sp
-                    )
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Column {
+                        Text(
+                            text = "${String.format("%.1f", abs(vehicleData.growth))}% ${if (vehicleData.growth >= 0) "growth" else "decline"}",
+                            color = growthColor,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 16.sp
+                        )
+                        Text(
+                            "vs last month",
+                            color = Color(0xFF64748B),
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.Medium
+                        )
+                    }
                 }
 
                 Spacer(modifier = Modifier.height(24.dp))
-                Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(260.dp),
-                    shape = RoundedCornerShape(16.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color.White),
-                    border = BorderStroke(1.dp, Color(0xFFE5E7EB))
-                ) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(16.dp)
-                    ) {
-                        Row(
-                            modifier = Modifier
-                                .weight(1f)
-                                .fillMaxWidth()
-                        ) {
-                            val yTickCount = 4
-                            val yTicks: List<Float> = (0..yTickCount).map { step ->
-                                val ratio = step / yTickCount.toFloat()
-                                (maxValue - ratio * (maxValue - minValue)).toFloat()
-                            }
 
-                            Column(
-                                modifier = Modifier
-                                    .fillMaxHeight()
-                                    .width(44.dp),
-                                verticalArrangement = Arrangement.SpaceBetween,
-                                horizontalAlignment = Alignment.End
-                            ) {
-                                yTicks.forEach { tickVal ->
-                                    Text(
-                                        text = String.format("%,.0f", tickVal.toDouble()),
-                                        fontSize = 10.sp,
-                                        fontWeight = FontWeight.Medium,
-                                        color = Color(0xFF9CA3AF),
-                                        maxLines = 1
-                                    )
-                                }
-                            }
+                // Modern Chart
+                VehicleRevenueChart(chartData = chartData)
 
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Box(
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .fillMaxHeight()
-                                    .background(
-                                        Color(0xFFFAFAFA),
-                                        RoundedCornerShape(12.dp)
-                                    )
-                                    .padding(12.dp)
-                            ) {
-                                Canvas(
-                                    modifier = Modifier.fillMaxSize()
-                                ) {
-                                    val w = size.width
-                                    val h = size.height
-                                    val points: List<Pair<Float, Float>> =
-                                        chartData.mapIndexed { index, (_, value) ->
-                                            val x = if (chartData.size > 1) {
-                                                (w / (chartData.size - 1)) * index
-                                            } else {
-                                                w / 2f
-                                            }
-                                            val norm = (value - minValue) / range
-                                            val usableHeight = h * 0.7f
-                                            val topOffset = h * 0.15f
-                                            val y = h - (topOffset + norm * usableHeight)
-
-                                            x to y
-                                        }
-                                    (0..yTickCount).forEach { i ->
-                                        val ratio = i / yTickCount.toFloat()
-                                        val yLine = h * 0.15f + (h * 0.7f) * ratio
-                                        val yCanvas = h - yLine
-
-                                        drawLine(
-                                            color = Color(0xFFE5E7EB),
-                                            start = androidx.compose.ui.geometry.Offset(
-                                                0f,
-                                                yCanvas
-                                            ),
-                                            end = androidx.compose.ui.geometry.Offset(
-                                                w,
-                                                yCanvas
-                                            ),
-                                            strokeWidth = 1.dp.toPx()
-                                        )
-                                    }
-                                    if (points.size > 1) {
-                                        val lineColor = Color(0xFF3B82F6)
-                                        val areaPath = Path().apply {
-                                            moveTo(points.first().first, h)
-                                            lineTo(points.first().first, points.first().second)
-
-                                            for (i in 0 until points.size - 1) {
-                                                val current = points[i]
-                                                val next = points[i + 1]
-                                                val cp1X = current.first + (next.first - current.first) / 3f
-                                                val cp2X = current.first + 2f * (next.first - current.first) / 3f
-                                                cubicTo(
-                                                    cp1X, current.second,
-                                                    cp2X, next.second,
-                                                    next.first, next.second
-                                                )
-                                            }
-
-                                            lineTo(points.last().first, h)
-                                            close()
-                                        }
-
-                                        drawPath(
-                                            path = areaPath,
-                                            brush = Brush.verticalGradient(
-                                                colors = listOf(
-                                                    lineColor.copy(alpha = 0.28f),
-                                                    lineColor.copy(alpha = 0.05f)
-                                                )
-                                            )
-                                        )
-
-                                        // Path line chính
-                                        val linePath = Path().apply {
-                                            moveTo(points.first().first, points.first().second)
-                                            for (i in 0 until points.size - 1) {
-                                                val current = points[i]
-                                                val next = points[i + 1]
-                                                val cp1X = current.first + (next.first - current.first) / 3f
-                                                val cp2X = current.first + 2f * (next.first - current.first) / 3f
-                                                cubicTo(
-                                                    cp1X, current.second,
-                                                    cp2X, next.second,
-                                                    next.first, next.second
-                                                )
-                                            }
-                                        }
-
-                                        drawPath(
-                                            path = linePath,
-                                            color = lineColor,
-                                            style = Stroke(
-                                                width = 3.dp.toPx(),
-                                                cap = StrokeCap.Round
-                                            )
-                                        )
-                                    }
-
-                                    // Vẽ chấm cho từng điểm
-                                    points.forEachIndexed { idx, (x, y) ->
-                                        // vòng trắng
-                                        drawCircle(
-                                            color = Color.White,
-                                            radius = 8.dp.toPx(),
-                                            center = androidx.compose.ui.geometry.Offset(x, y)
-                                        )
-                                        // chấm màu: điểm peak (max) sẽ xanh đậm, còn lại xám
-                                        val dotColor =
-                                            if (idx == maxIndex) Color(0xFF3B82F6)
-                                            else Color(0xFF9CA3AF)
-                                        drawCircle(
-                                            color = dotColor,
-                                            radius = 5.dp.toPx(),
-                                            center = androidx.compose.ui.geometry.Offset(x, y)
-                                        )
-                                    }
-                                }
-
-                                // Tooltip "Peak" cố định trên góc cao để tránh offset phức tạp
-                                if (maxValue > 0f) {
-                                    Box(
-                                        modifier = Modifier.fillMaxSize(),
-                                        contentAlignment = Alignment.TopStart
-                                    ) {
-                                        Column(
-                                            modifier = Modifier
-                                                .background(
-                                                    Color(0xFF1F2937),
-                                                    shape = RoundedCornerShape(8.dp)
-                                                )
-                                                .padding(horizontal = 8.dp, vertical = 6.dp)
-                                        ) {
-                                            Text(
-                                                text = "Peak",
-                                                color = Color.White.copy(alpha = 0.8f),
-                                                fontSize = 10.sp,
-                                                fontWeight = FontWeight.Medium
-                                            )
-                                            Text(
-                                                text = String.format("%,.0f", maxValue.toDouble()),
-                                                color = Color.White,
-                                                fontSize = 14.sp,
-                                                fontWeight = FontWeight.SemiBold
-                                            )
-                                        }
-                                    }
-                                }
-                            }
-                        }
-
-                        Spacer(modifier = Modifier.height(12.dp))
-
-                        // ==== TRỤC X (THÁNG) ====
-                        // để tránh chữ dày đặc, chỉ show 3 mốc: đầu / giữa / cuối
-                        val visibleLabelIndexes = listOf(
-                            0,
-                            chartData.size / 2,
-                            chartData.lastIndex
-                        ).distinct().sorted()
-
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween
-                        ) {
-                            chartData.forEachIndexed { index, (label, _) ->
-                                val show = index in visibleLabelIndexes
-                                Text(
-                                    text = if (show) label else "",
-                                    fontSize = 11.sp,
-                                    color = Color(0xFF6B7280),
-                                    fontWeight = FontWeight.Medium,
-                                    textAlign = when (index) {
-                                        0 -> TextAlign.Start
-                                        chartData.size - 1 -> TextAlign.End
-                                        else -> TextAlign.Center
-                                    },
-                                    modifier = Modifier.weight(1f)
-                                )
-                            }
-                        }
-                    }
-                }
             } ?: run {
-                // không có data hợp lệ (ví dụ BE chỉ trả "Unknown")
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(200.dp),
+                        .height(200.dp)
+                        .background(Color(0xFFF8FAFC), shape = RoundedCornerShape(16.dp)),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text(
-                        text = "No data available",
-                        color = Color(0xFF6B7280),
-                        fontSize = 14.sp
-                    )
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text(
+                            text = "📊",
+                            fontSize = 48.sp
+                        )
+                        Spacer(modifier = Modifier.height(12.dp))
+                        Text(
+                            text = "No data available",
+                            color = Color(0xFF64748B),
+                            fontSize = 15.sp,
+                            fontWeight = FontWeight.Medium
+                        )
+                    }
                 }
             }
         }
     }
 }
 
-
+@Composable
+fun ModernStatBox(
+    label: String,
+    value: String,
+    color: Color,
+    icon: String,
+    modifier: Modifier = Modifier
+) {
+    Card(
+        modifier = modifier,
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = color.copy(alpha = 0.08f)
+        ),
+        border = BorderStroke(1.dp, color.copy(alpha = 0.2f))
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.Top
+            ) {
+                Text(
+                    text = icon,
+                    fontSize = 15.sp
+                )
+                Text(
+                    value,
+                    fontWeight = FontWeight.ExtraBold,
+                    fontSize = 15.sp,
+                    color = color,
+                    letterSpacing = (-0.5).sp
+                )
+            }
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                label,
+                color = Color(0xFF64748B),
+                fontSize = 12.sp,
+                fontWeight = FontWeight.SemiBold,
+                letterSpacing = 0.3.sp
+            )
+        }
+    }
+}
 
 @Composable
-fun StatBox(label: String, value: String, color: Color) {
-    Column(
+fun VehicleRevenueChart(chartData: List<Pair<String, Float>>) {
+    val valuesOnly = chartData.map { it.second }
+    val maxValue = valuesOnly.maxOrNull() ?: 0f
+    val minValue = valuesOnly.minOrNull() ?: 0f
+    val range = (maxValue - minValue).let { if (it == 0f) 1f else it }
+
+    Card(
         modifier = Modifier
-            .background(color.copy(alpha = 0.1f), shape = RoundedCornerShape(12.dp))
-            .padding(16.dp)
+            .fillMaxWidth()
+            .height(280.dp),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = Color(0xFFFAFBFC)),
+        border = BorderStroke(1.dp, Color(0xFFE5E7EB))
     ) {
-        Text(
-            label,
-            color = Color(0xFF6B7280),
-            fontSize = 13.sp,
-            fontWeight = FontWeight.Medium
-        )
-        Spacer(modifier = Modifier.height(4.dp))
-        Text(
-            text = value,
-            fontWeight = FontWeight.Bold,
-            fontSize = 24.sp,
-            color = color
-        )
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp)
+        ) {
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxWidth()
+            ) {
+                Canvas(modifier = Modifier.fillMaxSize()) {
+                    val w = size.width
+                    val h = size.height
+
+                    val points = chartData.mapIndexed { index, (_, value) ->
+                        val x = if (chartData.size > 1) {
+                            (w / (chartData.size - 1)) * index
+                        } else {
+                            w / 2f
+                        }
+                        val norm = if (range > 0f) (value - minValue) / range else 0.5f
+                        val y = h - (h * 0.15f) - (norm * h * 0.7f)
+                        x to y
+                    }
+
+                    // Grid lines
+                    for (i in 0..4) {
+                        val yLine = h * 0.15f + (h * 0.7f) * (i / 4f)
+                        val yCanvas = h - yLine
+                        drawLine(
+                            color = Color(0xFFE5E7EB),
+                            start = androidx.compose.ui.geometry.Offset(0f, yCanvas),
+                            end = androidx.compose.ui.geometry.Offset(w, yCanvas),
+                            strokeWidth = 1.dp.toPx()
+                        )
+                    }
+
+                    // Smooth curve path
+                    if (points.size > 1) {
+                        val lineColor = Color(0xFF3B82F6)
+
+                        // Area fill with gradient
+                        val areaPath = Path().apply {
+                            moveTo(points.first().first, h)
+                            lineTo(points.first().first, points.first().second)
+
+                            for (i in 0 until points.size - 1) {
+                                val current = points[i]
+                                val next = points[i + 1]
+                                val cp1X = current.first + (next.first - current.first) / 3f
+                                val cp2X = current.first + 2f * (next.first - current.first) / 3f
+                                cubicTo(
+                                    cp1X, current.second,
+                                    cp2X, next.second,
+                                    next.first, next.second
+                                )
+                            }
+
+                            lineTo(points.last().first, h)
+                            close()
+                        }
+
+                        drawPath(
+                            path = areaPath,
+                            brush = Brush.verticalGradient(
+                                colors = listOf(
+                                    lineColor.copy(alpha = 0.25f),
+                                    lineColor.copy(alpha = 0.05f)
+                                )
+                            )
+                        )
+
+                        // Smooth line
+                        val linePath = Path().apply {
+                            moveTo(points.first().first, points.first().second)
+                            for (i in 0 until points.size - 1) {
+                                val current = points[i]
+                                val next = points[i + 1]
+                                val cp1X = current.first + (next.first - current.first) / 3f
+                                val cp2X = current.first + 2f * (next.first - current.first) / 3f
+                                cubicTo(
+                                    cp1X, current.second,
+                                    cp2X, next.second,
+                                    next.first, next.second
+                                )
+                            }
+                        }
+
+                        drawPath(
+                            path = linePath,
+                            color = lineColor,
+                            style = Stroke(
+                                width = 3.dp.toPx(),
+                                cap = StrokeCap.Round
+                            )
+                        )
+                    }
+
+                    // Data points với glow effect
+                    points.forEach { (x, y) ->
+                        // Outer glow
+                        drawCircle(
+                            color = Color(0xFF3B82F6).copy(alpha = 0.2f),
+                            radius = 12.dp.toPx(),
+                            center = androidx.compose.ui.geometry.Offset(x, y)
+                        )
+                        // White ring
+                        drawCircle(
+                            color = Color.White,
+                            radius = 8.dp.toPx(),
+                            center = androidx.compose.ui.geometry.Offset(x, y)
+                        )
+                        // Inner dot
+                        drawCircle(
+                            color = Color(0xFF3B82F6),
+                            radius = 5.dp.toPx(),
+                            center = androidx.compose.ui.geometry.Offset(x, y)
+                        )
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // X-axis labels (show only some to avoid clutter)
+            val visibleLabelIndexes = when {
+                chartData.size <= 3 -> chartData.indices.toList()
+                else -> listOf(0, chartData.size / 2, chartData.lastIndex)
+            }
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                chartData.forEachIndexed { index, (label, _) ->
+                    Text(
+                        text = if (index in visibleLabelIndexes) label else "",
+                        fontSize = 11.sp,
+                        color = Color(0xFF64748B),
+                        fontWeight = FontWeight.Medium,
+                        textAlign = when (index) {
+                            0 -> TextAlign.Start
+                            chartData.size - 1 -> TextAlign.End
+                            else -> TextAlign.Center
+                        },
+                        modifier = Modifier.weight(1f)
+                    )
+                }
+            }
+        }
     }
 }
 
@@ -1178,47 +1124,61 @@ fun FilterDropdown(
     var expanded by remember { mutableStateOf(false) }
 
     Box {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier
-                .clip(RoundedCornerShape(10.dp))
-                .background(Color(0xFFF3F4F6))
-                .clickable { expanded = true }
-                .padding(horizontal = 12.dp, vertical = 8.dp)
+        Surface(
+            onClick = { expanded = true },
+            shape = RoundedCornerShape(12.dp),
+            color = MaterialTheme.colorScheme.primaryContainer
         ) {
-            Text(
-                selectedOption,
-                color = Color(0xFF4F46E5),
-                fontSize = 14.sp,
-                fontWeight = FontWeight.SemiBold
-            )
-            Spacer(modifier = Modifier.width(4.dp))
-            Icon(
-                Icons.Default.ArrowDropDown,
-                contentDescription = "Dropdown",
-                tint = Color(0xFF4F46E5),
-                modifier = Modifier.size(20.dp)
-            )
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.padding(horizontal = 8.dp, vertical = 10.dp)
+            ) {
+                Text(
+                    selectedOption.ifEmpty { "Select" },
+                    color = MaterialTheme.colorScheme.background,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Bold,
+                    letterSpacing = 0.3.sp
+                )
+                Spacer(modifier = Modifier.width(6.dp))
+                Icon(
+                    Icons.Default.ArrowDropDown,
+                    contentDescription = "Dropdown",
+                    tint =  MaterialTheme.colorScheme.background,
+                    modifier = Modifier.size(20.dp)
+                )
+            }
         }
 
         DropdownMenu(
             expanded = expanded,
             onDismissRequest = { expanded = false },
-            modifier = Modifier.background(Color.White)
+            modifier = Modifier
+                .background(Color.White, shape = RoundedCornerShape(12.dp))
         ) {
             options.forEach { option ->
                 DropdownMenuItem(
                     text = {
                         Text(
                             option,
-                            color = if (option == selectedOption) Color(0xFF4F46E5) else Color(0xFF374151),
-                            fontWeight = if (option == selectedOption) FontWeight.SemiBold else FontWeight.Normal
+                            color = if (option == selectedOption)
+                                MaterialTheme.colorScheme.primary
+                            else Color(0xFF374151),
+                            fontWeight = if (option == selectedOption)
+                                FontWeight.Bold
+                            else FontWeight.Medium,
+                            fontSize = 14.sp
                         )
                     },
                     onClick = {
                         onOptionSelected(option)
                         expanded = false
-                    }
+                    },
+                    modifier = Modifier.background(
+                        if (option == selectedOption)
+                            MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
+                        else Color.Transparent
+                    )
                 )
             }
         }
