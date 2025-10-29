@@ -114,14 +114,14 @@ fun HeadbarEditUserProfile(navHostController: NavHostController) {
         Icon(
             imageVector = Icons.Filled.ArrowBack,
             contentDescription = "Back Button",
-            tint = MaterialTheme.colorScheme.background,
+            tint = MaterialTheme.colorScheme.onBackground,
             modifier = Modifier
                 .align(Alignment.CenterStart)
                 .clickable { navHostController.popBackStack() }
         )
         Text(
             text = "Edit User Profile",
-            color = MaterialTheme.colorScheme.onPrimary,
+            color = MaterialTheme.colorScheme.onBackground,
             style = MaterialTheme.typography.titleMedium,
             textAlign = TextAlign.Center,
             modifier = Modifier.fillMaxWidth()
@@ -277,8 +277,8 @@ fun AcceptEditButton(
             .padding(horizontal = 20.dp, vertical = 10.dp),
         enabled = !isUpdating,
         colors = ButtonDefaults.buttonColors(
-            containerColor = MaterialTheme.colorScheme.primary,
-            contentColor = MaterialTheme.colorScheme.onPrimary
+            containerColor = MaterialTheme.colorScheme.primaryContainer,
+            contentColor = MaterialTheme.colorScheme.onPrimaryContainer
         ),
         onClick = {
             // Kiểm tra nếu người dùng muốn đổi mật khẩu

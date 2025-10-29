@@ -21,7 +21,7 @@ val BoxLightGrey = Color(0xFF565656)
 
 val secondContainer = Color(0xFFE7E7E7)
 val ButtonTheme = Color(0xFF2E3FA4)
-val onSecondDarkContainer = Color(0xFFA2A2A2)
+val onSecondDarkContainer = Color(0xFFB4B4B4)
 
 val LightBlueCustom = Color(0xFFBBDEFB) // Màu xanh dương nhạt
 val MidGrayCustom = Color(0xFFC7C7C7) // Màu xám vừa

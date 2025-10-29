@@ -22,6 +22,7 @@ import androidx.navigation.NavHostController
 import com.parkingSystem.parkingSystem.responsemodel.ReportResponse
 import com.parkingSystem.parkingSystem.retrofit.RetrofitInstance
 import com.parkingSystem.parkingSystem.ui.theme.LocalGradientTheme
+import com.parkingSystem.parkingSystem.user.notification.formatDate
 import com.parkingSystem.parkingSystem.viewmodel.MyReportsViewModel
 
 @Composable
@@ -56,7 +57,7 @@ fun MyReportsScreen(
 
     Surface(
         modifier = Modifier.fillMaxSize(),
-        color = Color(0xFFF4F5F7)
+        color = MaterialTheme.colorScheme.background
     ) {
         Column(
             modifier = Modifier.fillMaxSize()
@@ -74,7 +75,7 @@ fun MyReportsScreen(
                     Icon(
                         imageVector = Icons.Filled.ArrowBack,
                         contentDescription = "Back",
-                        tint = Color.White,
+                        tint = MaterialTheme.colorScheme.onBackground,
                         modifier = Modifier
                             .size(28.dp)
                             .clickable {
@@ -86,7 +87,7 @@ fun MyReportsScreen(
                         text = "My report",
                         fontWeight = FontWeight.Bold,
                         fontSize = 22.sp,
-                        color = Color.White,
+                        color = MaterialTheme.colorScheme.onBackground,
                         modifier = Modifier
                             .weight(1f)
                             .padding(end = 28.dp),
@@ -98,7 +99,7 @@ fun MyReportsScreen(
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(Color(0xFFF4F5F7))
+                    .background(MaterialTheme.colorScheme.background)
             ) {
                 when {
                     isLoading -> {
@@ -113,14 +114,14 @@ fun MyReportsScreen(
                                 verticalArrangement = Arrangement.spacedBy(12.dp)
                             ) {
                                 CircularProgressIndicator(
-                                    color = Color(0xFF002E5D),
+                                    color = MaterialTheme.colorScheme.onBackground,
                                     strokeWidth = 3.dp,
                                     modifier = Modifier.size(48.dp)
                                 )
                                 Text(
                                     text = "Loading your reports...",
                                     fontSize = 14.sp,
-                                    color = Color(0xFF6B7280)
+                                    color = MaterialTheme.colorScheme.onSecondaryContainer
                                 )
                             }
                         }
@@ -188,12 +189,12 @@ fun MyReportsScreen(
                                     text = "No Reports Yet",
                                     fontSize = 20.sp,
                                     fontWeight = FontWeight.Bold,
-                                    color = Color(0xFF111827)
+                                    color = MaterialTheme.colorScheme.onBackground
                                 )
 
                                 Text(
                                     text = "You haven't submitted any reports.",
-                                    color = Color(0xFF6B7280),
+                                    color =MaterialTheme.colorScheme.onBackground,
                                     fontSize = 15.sp
                                 )
                             }
@@ -225,7 +226,7 @@ fun MyReportItemCard(
     val statusColor = when (report.status?.lowercase()) {
         "closed" -> Color(0xFF059669)
         "opened", "pending", "open" -> Color(0xFFF59E0B)
-        else -> Color(0xFF6B7280)
+        else -> Color(0xFF868686)
     }
     LaunchedEffect(report._id) {
         android.util.Log.d(
@@ -238,7 +239,7 @@ fun MyReportItemCard(
 
     Card(
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
         shape = RoundedCornerShape(12.dp)
     ) {
@@ -261,7 +262,7 @@ fun MyReportItemCard(
                         text = report.title ?: "(No title)",
                         fontWeight = FontWeight.Bold,
                         fontSize = 17.sp,
-                        color = Color(0xFF111827),
+                        color = MaterialTheme.colorScheme.onBackground,
                         maxLines = 2,
                         overflow = TextOverflow.Ellipsis
                     )
@@ -269,14 +270,14 @@ fun MyReportItemCard(
                     Text(
                         text = "Slot: ${report.slotId ?: "N/A"} }",
                         fontSize = 13.sp,
-                        color = Color(0xFF6B7280),
+                        color = MaterialTheme.colorScheme.onSecondaryContainer,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
                     Text(
                         text = "Booking: ${report.bookingId ?: "N/A"}",
                         fontSize = 13.sp,
-                        color = Color(0xFF6B7280),
+                        color = MaterialTheme.colorScheme.onSecondaryContainer,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
@@ -297,20 +298,20 @@ fun MyReportItemCard(
                 }
             }
 
-            HorizontalDivider(color = Color(0xFFE5E7EB), thickness = 1.dp)
+            HorizontalDivider(color = MaterialTheme.colorScheme.onSecondaryContainer, thickness = 1.dp)
             Column(
                 verticalArrangement = Arrangement.spacedBy(6.dp)
             ) {
                 Text(
                     text = "Your message",
                     fontSize = 12.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    color = Color(0xFF6B7280)
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onBackground
                 )
                 Text(
                     text = report.content ?: "(No content)",
                     fontSize = 14.sp,
-                    color = Color(0xFF374151),
+                    color = MaterialTheme.colorScheme.onSecondaryContainer,
                     lineHeight = 20.sp
                 )
             }
@@ -394,12 +395,12 @@ fun MyReportItemCard(
                     text = "Created",
                     fontSize = 12.sp,
                     fontWeight = FontWeight.Medium,
-                    color = Color(0xFF6B7280)
+                    color = MaterialTheme.colorScheme.onBackground
                 )
                 Text(
-                    text = report.createdAt ?: "N/A",
+                    text = formatDate(report.createdAt.toString()) ?: "N/A",
                     fontSize = 13.sp,
-                    color = Color(0xFF374151),
+                    color = MaterialTheme.colorScheme.onSecondaryContainer,
                     fontWeight = FontWeight.Medium,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
