@@ -14,6 +14,8 @@ import com.parkingSystem.parkingSystem.responsemodel.CreateSlotEnvelope
 import com.parkingSystem.parkingSystem.responsemodel.SlotData
 import com.parkingSystem.parkingSystem.responsemodel.SlotDto
 import com.parkingSystem.parkingSystem.responsemodel.Park
+import com.parkingSystem.parkingSystem.responsemodel.ParkingOverview
+import com.parkingSystem.parkingSystem.responsemodel.RevenueReport
 import com.parkingSystem.parkingSystem.responsemodel.Slot
 import com.parkingSystem.parkingSystem.retrofit.RetrofitInstance
 import kotlinx.coroutines.Dispatchers
@@ -93,6 +95,11 @@ class ParkingViewModel(private val sharedPreferences: SharedPreferences) : ViewM
     private val _createParkingLotMessage = MutableStateFlow<String?>(null)
     val createParkingLotMessage: StateFlow<String?> = _createParkingLotMessage.asStateFlow()
 
+    private val _parkingOverview = MutableStateFlow<ParkingOverview?>(null)
+    val parkingOverview: StateFlow<ParkingOverview?> = _parkingOverview.asStateFlow()
+
+    private val _revenueReport = MutableStateFlow<RevenueReport?>(null)
+    val revenueReport: StateFlow<RevenueReport?> = _revenueReport.asStateFlow()
 
     fun fetchAllParksAvailable() {
         viewModelScope.launch {
@@ -400,6 +407,76 @@ class ParkingViewModel(private val sharedPreferences: SharedPreferences) : ViewM
                 }
             } catch (e: Exception) {
                 _error.value = "Error: ${e.message}"
+                e.printStackTrace()
+            } finally {
+                _isLoading.value = false
+            }
+        }
+    }
+
+    fun getParkingOverView() {
+        viewModelScope.launch {
+            _isLoading.value = true
+            _error.value = null
+            try {
+                println("Fetching parking overview...")
+                val response = RetrofitInstance.parking.getParkingOverView()
+
+                if (response.isSuccessful) {
+                    val responseBody = response.body()?.string()
+                    println("API trả về thành công: $responseBody")
+
+                    if (responseBody != null) {
+                        // Parse JSON response
+                        val overview = Gson().fromJson(responseBody, ParkingOverview::class.java)
+                        _parkingOverview.value = overview
+                        println("Parsed overview: $overview")
+                    } else {
+                        _error.value = "Response body is null"
+                    }
+                }  else {
+                    val errorBody = response.errorBody()?.string()
+                    println("API error: ${response.code()} - $errorBody")
+                    _error.value = "Không thể load được overview: ${response.code()}"
+                }
+            } catch (e: Exception) {
+                _error.value = "Lỗi: ${e.message}"
+                println("Exception in getParkingOverView: ${e.message}")
+                e.printStackTrace()
+            } finally {
+                _isLoading.value = false
+            }
+        }
+    }
+
+    fun getRevenueReport(period: String = "month") {
+        viewModelScope.launch {
+            _isLoading.value = true
+            _error.value = null
+            try {
+                println("Fetching revenue report for period: $period")
+                val response = RetrofitInstance.parking.getRevenueReport(period)
+
+                if (response.isSuccessful) {
+                    val responseBody = response.body()?.string()
+                    println("Revenue Report API response: $responseBody")
+
+                    if (responseBody != null) {
+                        // Parse JSON response
+                        val report = Gson().fromJson(responseBody, RevenueReport::class.java)
+                        _revenueReport.value = report
+                        println("Parsed revenue report: $report")
+                    } else {
+                        _error.value = "Response body is null"
+                    }
+                } else {
+                    val errorBody = response.errorBody()?.string()
+                    println("Revenue Report API error: ${response.code()} - $errorBody")
+                    _error.value = "Không thể load revenue report: ${response.code()}"
+                }
+            } catch (e: Exception) {
+                _error.value = "Lỗi: ${e.message}"
+                println("Exception in getRevenueReport: ${e.message}")
                 e.printStackTrace()
             } finally {
                 _isLoading.value = false

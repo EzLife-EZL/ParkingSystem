@@ -52,4 +52,18 @@ interface ParkingService {
         @Path("parkId") parkId: String,
         @Path("slotId") slotId: String,
     ) : Response<ResponseBody>
+
+    @Headers("Content-Type: application/json")
+    @GET ("manager/parking-overview")
+    suspend fun getParkingOverView() : Response<ResponseBody>
+
+    @Headers("Content-Type: application/json")
+    @GET ("manager/revenue-report")
+    suspend fun getRevenueReport(
+        @retrofit2.http.Query("period") period: String = "month"
+    ): Response<ResponseBody>
+
+    @Headers("Content-Type: application/json")
+    @GET ("manager/revenue-vehicle-type")
+    suspend fun getRevenueByVehicleType() : Response<ResponseBody>
 }

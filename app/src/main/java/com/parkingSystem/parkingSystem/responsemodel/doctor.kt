@@ -139,3 +139,39 @@ data class SlotDto(
     @SerializedName("pos_Y") val pos_Y: Int,
     val isBooked: Boolean
 )
+
+data class ParkingOverview(
+    val parkedVehicles: Int = 0,
+    val availableSpots: Int = 0,
+    val totalSpots: Int = 0,
+    val occupancyRate: Double = 0.0
+)
+
+
+data class RevenueReport(
+    val currentPeriod: PeriodData,
+    val previousPeriod: PeriodData,
+    val growthPercentage: Double,
+    val isPositiveGrowth: Boolean,
+    val comparisonText: String
+)
+
+data class PeriodData(
+    val amount: Double,
+    val label: String
+)
+
+data class RevenueVehicleType(
+    val typeVehicle: String = "",
+    val currentMonth: Double = 0.0,
+    val lastMonth: Double = 0.0,
+    val growth: Double = 0.0,
+    val totalBookings: Int = 0,
+    val paidBookings: Int = 0,
+    val months: List<Double> = emptyList(),
+)
+
+data class RevenueResponse(
+    val labels: List<String> = emptyList(),
+    val series: List<RevenueVehicleType> = emptyList()
+)
